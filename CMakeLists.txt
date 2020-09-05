@@ -59,17 +59,17 @@ foreach(a_test ${tests})
 endforeach()
 
 # Tools for testing
-add_executable(gnz2dec tools/gnz2dec.cpp)
-target_link_libraries(gnz2dec ${core})
-
-add_executable(gtree2hex-async tools/gtree2hex.cpp)
-target_link_libraries(gtree2hex-async ${core})
-
-add_executable(gtree2hex tools/gtree2hex-sync.cpp)
+add_executable(gtree2hex tools/gtree2hex.cpp)
 target_link_libraries(gtree2hex ${core})
 
-add_executable(nums tools/nums.cpp)
+add_executable(async_gtree2hex example/async_gtree2hex.cpp)
+target_link_libraries(async_gtree2hex ${core})
+
+add_executable(nums example/nums.cpp)
 target_link_libraries(nums ${core})
+
+add_executable(gnz2dec example/async_gnz2dec.cpp)
+target_link_libraries(gnz2dec ${core})
 
 add_executable(string_or_uint example/string_or_uint.cpp)
 target_link_libraries(string_or_uint ${core})
