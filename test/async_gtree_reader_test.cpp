@@ -7,7 +7,7 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/asio/gtree_reader.hpp"
-#include "gulachek/gtree/asio/memory_stream_reader.hpp"
+#include "gulachek/gtree/asio/memory_read_stream.hpp"
 #include "gulachek/gtree/asio/memory_message_reader.hpp"
 #include <list>
 #include <vector>
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(ExecutorTypeSameAsNatNumExecutorType)
 {
 	bool same_executor = std::is_same<
 		NatNumReader::executor_type,
-		gta::gtree_reader<NatNumReader, gta::MemoryStreamReader<>, FakeTreeBuilder>::executor_type
+		gta::gtree_reader<NatNumReader, gta::memory_read_stream<>, FakeTreeBuilder>::executor_type
 			>::value;
 
 	BOOST_TEST(same_executor);
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_SUITE(GetExecutor)
 BOOST_AUTO_TEST_CASE(SameAsNatNumExecutor)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_SUITE(ReadingTrees)
 BOOST_AUTO_TEST_CASE(NodeBlockIsPassedToBuilder)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(NodeBlockIsPassedToBuilder)
 BOOST_AUTO_TEST_CASE(ZeroSizeNodeBlockResultsInEmptyTree)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(ZeroSizeNodeBlockResultsInEmptyTree)
 BOOST_AUTO_TEST_CASE(DataBlockIsPassedToBuilder)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(DataBlockIsPassedToBuilder)
 BOOST_AUTO_TEST_CASE(Sequential)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -242,7 +242,7 @@ BOOST_DATA_TEST_CASE(
 		)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -266,7 +266,7 @@ BOOST_DATA_TEST_CASE(
 BOOST_AUTO_TEST_CASE(EofReadingNodeBlockIsBadMessage)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -292,7 +292,7 @@ BOOST_AUTO_TEST_CASE(EofReadingNodeBlockIsBadMessage)
 BOOST_AUTO_TEST_CASE(NonEofErrorReadingNodeBlockIsPassedToCompletion)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -318,7 +318,7 @@ BOOST_AUTO_TEST_CASE(NonEofErrorReadingNodeBlockIsPassedToCompletion)
 BOOST_AUTO_TEST_CASE(ReadLessThanNodeBlockIsNonEofError)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(ReadLessThanNodeBlockIsNonEofError)
 BOOST_AUTO_TEST_CASE(EofReadingDataBlockIsBadMessage)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE(EofReadingDataBlockIsBadMessage)
 BOOST_AUTO_TEST_CASE(NonEofErrorReadingDataBlockIsPassedToCompletion)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE(NonEofErrorReadingDataBlockIsPassedToCompletion)
 BOOST_AUTO_TEST_CASE(ReadLessThanDataBlockIsNonEofError)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -437,7 +437,7 @@ BOOST_AUTO_TEST_CASE(ReadLessThanDataBlockIsNonEofError)
 BOOST_AUTO_TEST_CASE(ParsingNodeBlockThrowsResultsInNonEofError)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -468,7 +468,7 @@ BOOST_AUTO_TEST_CASE(ParsingNodeBlockThrowsResultsInNonEofError)
 BOOST_AUTO_TEST_CASE(ParsingDataBlockThrowsResultsInNonEofError)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE(ParsingDataBlockThrowsResultsInNonEofError)
 BOOST_AUTO_TEST_CASE(FailureToAllocateNodeBlockResultsInNotEnoughMemory)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	BadAllocator alloc;
@@ -529,7 +529,7 @@ BOOST_AUTO_TEST_SUITE(ExternalStreamBuf)
 BOOST_AUTO_TEST_CASE(DataInBufUsedAsNodeBlock)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -558,7 +558,7 @@ BOOST_AUTO_TEST_CASE(DataInBufUsedAsNodeBlock)
 BOOST_AUTO_TEST_CASE(DataBlockFromPreExistingBuffer)
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
@@ -588,7 +588,7 @@ BOOST_AUTO_TEST_CASE(DataBlockFromPreExistingBuffer)
 BOOST_AUTO_TEST_CASE(EntireOpInBuf, * boost::unit_test::label("buggy"))
 {
 	asio::io_context io;
-	gta::MemoryStreamReader stream{io};
+	gta::memory_read_stream stream{io};
 	NatNumReader nums{io};
 	FakeTreeBuilder builder;
 	asio::streambuf sb;
