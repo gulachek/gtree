@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 
 namespace gt = gulachek::gtree;
 
@@ -24,11 +25,49 @@ void _print(const gt::tree &t, std::size_t ident)
 		_print(t.child(i), ident+1);
 }
 
-int main()
+template <typename ITreem>
+bool gtree2hex(ITreem &itreem)
 {
 	gt::tree t;
-	while (gt::tin.read(&t))
-			_print(t, 0);
 
-	return 0;
+	try
+	{
+		while (itreem.read(&t))
+				_print(t, 0);
+		return true;
+	}
+	catch (const std::exception &ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return false;
+	}
+}
+
+int main(int argc, char** argv)
+{
+	bool success = true;
+
+	if (argc == 1)
+	{
+		success = gtree2hex(gt::tin);
+	}
+	else
+	{
+		for (std::size_t i = 1; i < argc; i++)
+		{
+			std::ifstream ifs{argv[i]};
+			if (ifs)
+			{
+				gt::itreem it{ifs};
+				success = success && gtree2hex(it);
+			}
+			else
+			{
+				std::cerr << "Failed to open file " << argv[i] << std::endl;
+				success = false;
+			}
+		}
+	}
+
+	std::exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
