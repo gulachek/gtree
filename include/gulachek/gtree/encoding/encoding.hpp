@@ -7,9 +7,21 @@ namespace gulachek::gtree
 	template <typename T, typename Extend = void*>
 	struct uses_value : std::true_type {};
 
+	template <typename T>
+	struct is_pure_container
+	{
+		static constexpr bool value = !uses_value<T>::value;
+	};
+
 	// Does the type's encoding ever have children? Opt out.
 	template <typename T, typename Extend = void*>
 	struct uses_children : std::true_type {};
+
+	template <typename T>
+	struct is_pure_value
+	{
+		static constexpr bool value = !uses_children<T>::value;
+	};
 
 	// Can the type be decoded? Not intended for specialization.
 	template <typename T>
