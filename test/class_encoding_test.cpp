@@ -35,6 +35,34 @@ struct Foo
 	}
 };
 
+BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesValue)
+{
+	struct Container {
+		using gtree_encoding = std::vector<std::size_t>;
+	};
+
+	struct Value {
+		using gtree_encoding = std::size_t;
+	};
+
+	BOOST_TEST(gt::uses_value<Value>::value);
+	BOOST_TEST(!gt::uses_value<Container>::value);
+}
+
+BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesChildren)
+{
+	struct Container {
+		using gtree_encoding = std::vector<std::size_t>;
+	};
+
+	struct Value {
+		using gtree_encoding = std::size_t;
+	};
+
+	BOOST_TEST(!gt::uses_children<Value>::value);
+	BOOST_TEST(gt::uses_children<Container>::value);
+}
+
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr{ {10} };

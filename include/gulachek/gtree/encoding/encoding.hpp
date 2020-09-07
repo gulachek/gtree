@@ -74,6 +74,26 @@ namespace gulachek::gtree
 		decode(tree, temp);
 		val = T::gtree_decode(std::move(temp));
 	}
+
+	template <typename T>
+	struct __subst_void_star
+	{
+		using type = void*;
+	};
+
+	template <typename T>
+	struct uses_value<
+		T,
+		typename __subst_void_star<typename T::gtree_encoding>::type
+			> :
+		uses_value<typename T::gtree_encoding> {};
+
+	template <typename T>
+	struct uses_children<
+		T,
+		typename __subst_void_star<typename T::gtree_encoding>::type
+			> :
+		uses_children<typename T::gtree_encoding> {};
 }
 
 #endif
