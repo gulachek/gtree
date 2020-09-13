@@ -2,6 +2,7 @@
 #define GULACHEK_GTREE_ENCODING_HPP
 
 #include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding/empty.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
 #include "gulachek/gtree/encoding/vector.hpp"
