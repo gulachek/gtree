@@ -9,6 +9,7 @@
 #include "gulachek/gtree/encoding/variant.hpp"
 #include "gulachek/gtree/encoding/optional.hpp"
 #include "gulachek/gtree/encoding/tuple.hpp"
+#include "gulachek/gtree/encoding/fusion.hpp"
 #include "gulachek/gtree/encoding/pair.hpp"
 #include "gulachek/gtree/encoding/map.hpp"
 #include "gulachek/gtree/encoding/polymorphic_variant.hpp"
