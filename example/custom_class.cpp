@@ -2,43 +2,21 @@
 #include <fstream>
 #include <iostream>
 
+#include <boost/fusion/include/adapt_struct.hpp>
+
 namespace gt = gulachek::gtree;
 
-class Foo
+struct Foo
 {
-	public:
-		typedef std::tuple<std::size_t, std::string> gtree_encoding;
-
-		Foo() = default;
-
-		static gtree_encoding gtree_encode(const Foo &foo)
-		{
-			return {foo._bar, foo._baz};
-		}
-
-		static Foo gtree_decode(gtree_encoding &&encoding)
-		{
-			return Foo{
-				std::move(std::get<0>(encoding)),
-				std::move(std::get<1>(encoding))
-			};
-		}
-
-		Foo(std::size_t bar, const std::string &baz) :
-			_bar{bar}, _baz{baz}
-		{}
-
-		std::size_t bar() const { return _bar; }
-		std::string baz() const { return _baz; }
-
-	private:
-		std::size_t _bar;
-		std::string _baz;
+	std::size_t bar;
+	std::string baz;
 };
+
+BOOST_FUSION_ADAPT_STRUCT(Foo, bar, baz);
 
 std::ostream& operator << (std::ostream& os, const Foo &foo)
 {
-	return os << "Foo{" << foo.bar() << ',' << foo.baz() << '}';
+	return os << "Foo{" << foo.bar << ',' << foo.baz << '}';
 }
 
 int main(int argc, char **argv)
@@ -56,7 +34,7 @@ int main(int argc, char **argv)
 		std::ofstream of{argv[2]};
 		gt::otreem tout{of};
 
-		Foo foo{123456, "hello world"};
+		Foo foo{654321, "goodbye earth"};
 		tout << foo;
 	}
 	else
