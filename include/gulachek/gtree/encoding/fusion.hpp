@@ -6,6 +6,9 @@
 
 #include <boost/fusion/sequence.hpp>
 #include <boost/fusion/include/sequence.hpp>
+#include <boost/fusion/include/sequence.hpp>
+#include <boost/fusion/adapted/std_tuple.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 namespace gulachek::gtree
 {
