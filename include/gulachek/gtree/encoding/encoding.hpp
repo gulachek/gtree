@@ -1,6 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_ENCODING_HPP
 #define GULACHEK_GTREE_ENCODING_ENCODING_HPP
 
+#include <boost/mpl/set.hpp>
+
 namespace gulachek::gtree
 {
 	// Does the type's encoding ever have a value? Opt out;
@@ -53,13 +55,27 @@ namespace gulachek::gtree
 	}
 
 	// Use this to encode your class/struct from raw trees
-	struct raw_encoding {};
+	struct value_encoding {};
+
+	using __manual_encodings = boost::mpl::set<
+		value_encoding
+		>;
+
+	using __manual_uses_value = boost::mpl::set<
+		value_encoding
+		>;
+
+	using __manual_uses_children = boost::mpl::set<
+		>;
 
 	// Specify an encoding type that your class can convert
 	// to/from
 	template <typename MutableTree, typename T,
 		std::enable_if_t<
-			!std::is_same_v<typename T::gtree_encoding, raw_encoding>,
+			!boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
 			void*> = nullptr
 			>
 	void encode(const T &val, MutableTree &tree)
@@ -69,9 +85,25 @@ namespace gulachek::gtree
 		encode(temp, tree);
 	}
 
+	template <typename MutableTree, typename T,
+		std::enable_if_t<
+			boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*> = nullptr
+			>
+	void encode(const T &val, MutableTree &tree)
+	{
+		val.gtree_encode(tree);
+	}
+
 	template <typename Tree, typename T,
 		std::enable_if_t<
-			!std::is_same_v<typename T::gtree_encoding, raw_encoding>,
+			!boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
 			void*> = nullptr
 			>
 	void decode(const Tree &tree, T &val)
@@ -79,6 +111,19 @@ namespace gulachek::gtree
 		typename T::gtree_encoding temp;
 		decode(tree, temp);
 		val.gtree_decode(temp);
+	}
+
+	template <typename Tree, typename T,
+		std::enable_if_t<
+			boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*> = nullptr
+			>
+	void decode(const Tree &tree, T &val)
+	{
+		val.gtree_decode(tree);
 	}
 
 	template <typename T>
@@ -90,16 +135,60 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_value<
 		T,
-		typename __subst_void_star<typename T::gtree_encoding>::type
+		std::enable_if_t<
+			!boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*>
 			> :
 		uses_value<typename T::gtree_encoding> {};
 
 	template <typename T>
+	struct uses_value<
+		T,
+		std::enable_if_t<
+			boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*>
+			>
+	{
+		static constexpr bool value =
+			boost::mpl::has_key<__manual_uses_value,
+			typename T::gtree_encoding
+		>::value;
+	};
+
+	template <typename T>
 	struct uses_children<
 		T,
-		typename __subst_void_star<typename T::gtree_encoding>::type
+		std::enable_if_t<
+			!boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*>
 			> :
 		uses_children<typename T::gtree_encoding> {};
+
+	template <typename T>
+	struct uses_children<
+		T,
+		std::enable_if_t<
+			boost::mpl::has_key<
+				__manual_encodings,
+				typename T::gtree_encoding
+			>::value,
+			void*>
+			>
+	{
+		static constexpr bool value =
+			boost::mpl::has_key<__manual_uses_children,
+			typename T::gtree_encoding
+		>::value;
+	};
 }
 
 #endif
