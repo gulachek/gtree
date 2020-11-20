@@ -9,6 +9,9 @@ namespace bd = boost::unit_test::data;
 #include "gulachek/gtree/mutable_tree.hpp"
 #include "gulachek/gtree/encoding.hpp"
 
+#include <boost/fusion/adapted/adt/adapt_adt.hpp>
+#include <boost/fusion/include/adapt_adt.hpp>
+
 #include <optional>
 #include <cstdint>
 
@@ -25,6 +28,8 @@ typedef std::tuple<
 	test_value,
 	test_container
 	> test_types;
+
+BOOST_AUTO_TEST_SUITE(Tuple)
 
 BOOST_AUTO_TEST_SUITE(SingleElement)
 
@@ -322,3 +327,265 @@ BOOST_AUTO_TEST_CASE(Decode)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ThreePlus
+
+BOOST_AUTO_TEST_SUITE_END() // Tuple
+
+class single
+{
+	public:
+		std::uint32_t n() const { return _n; }
+		void n(std::uint32_t n) { _n = n; }
+
+	private:
+		std::uint32_t _n;
+};
+
+BOOST_FUSION_ADAPT_ADT(::single,
+		(obj.n(), obj.n(val))
+		);
+
+class triple
+{
+	public:
+		std::uint32_t first() const { return _f; }
+		void first(std::uint32_t f) { _f = f; }
+
+		std::uint32_t second() const { return _s; }
+		void second(std::uint32_t s) { _s = s; }
+
+		std::uint32_t third() const { return _t; }
+		void third(std::uint32_t t) { _t = t; }
+
+	private:
+		std::uint32_t _f;
+		std::uint32_t _s;
+		std::uint32_t _t;
+};
+
+BOOST_FUSION_ADAPT_ADT(::triple,
+		(obj.first(), obj.first(val))
+		(obj.second(), obj.second(val))
+		(obj.third(), obj.third(val))
+		);
+
+class value_container
+{
+	public:
+		std::uint32_t value() const { return _v; }
+		void value(std::uint32_t v) { _v = v; }
+
+		std::vector<std::uint32_t> container() const { return _c; }
+		void container(const std::vector<std::uint32_t> &c)
+		{ _c = c; }
+
+	private:
+		std::uint32_t _v;
+		std::vector<std::uint32_t> _c;
+};
+
+BOOST_FUSION_ADAPT_ADT(::value_container,
+		(obj.value(), obj.value(val))
+		(obj.container(), obj.container(val))
+		);
+
+class container_value
+{
+	public:
+		std::uint32_t value() const { return _v; }
+		void value(std::uint32_t v) { _v = v; }
+
+		std::vector<std::uint32_t> container() const { return _c; }
+		void container(const std::vector<std::uint32_t> &c)
+		{ _c = c; }
+
+	private:
+		std::uint32_t _v;
+		std::vector<std::uint32_t> _c;
+};
+
+BOOST_FUSION_ADAPT_ADT(::container_value,
+		(obj.container(), obj.container(val))
+		(obj.value(), obj.value(val))
+		);
+
+class value_value
+{
+	public:
+		std::uint32_t first() const { return _f; }
+		void first(std::uint32_t f) { _f = f; }
+
+		std::uint32_t second() const { return _s; }
+		void second(std::uint32_t s) { _s = s; }
+
+
+	private:
+		std::uint32_t _f;
+		std::uint32_t _s;
+};
+
+BOOST_FUSION_ADAPT_ADT(::value_value,
+		(obj.first(), obj.first(val))
+		(obj.second(), obj.second(val))
+		);
+
+BOOST_AUTO_TEST_SUITE(ADT)
+
+BOOST_AUTO_TEST_SUITE(SingleElement)
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{ { 25 } }, result;
+	single val;
+	val.n(25);
+	gt::encode(val, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{ { 25 } };
+	single val;
+
+	gt::decode(tr, val);
+
+	BOOST_TEST(val.n() == 25);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // SingleElement
+
+BOOST_AUTO_TEST_SUITE(Pair)
+
+BOOST_AUTO_TEST_SUITE(ValueContainer)
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{ { 1 }, {
+		gt::mutable_tree{ {2} }
+	}};
+
+	value_container vc;
+	gt::decode(tr, vc);
+
+	BOOST_TEST(vc.value() == 1);
+	BOOST_TEST(vc.container()[0] == 2);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{ { 1 }, {
+		gt::mutable_tree{ {2} }
+	}}, result;
+
+	value_container vc;
+	vc.value(1);
+	vc.container({2});
+	gt::encode(vc, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ValueContainer
+
+BOOST_AUTO_TEST_SUITE(ValueGeneral)
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{ { 1 }, {
+		gt::mutable_tree{ {2} }
+	}};
+
+	value_value vv;
+	gt::decode(tr, vv);
+
+	BOOST_TEST(vv.first() == 1);
+	BOOST_TEST(vv.second() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{ { 1 }, {
+		gt::mutable_tree{ {2} }
+	}}, result;
+
+	value_value vv;
+	vv.first(1);
+	vv.second(2);
+	gt::encode(vv, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ValueGeneral
+
+BOOST_AUTO_TEST_SUITE(ContainerValue)
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{ { 2 }, {
+		gt::mutable_tree{ {1} }
+	}};
+
+	container_value cv;
+	gt::decode(tr, cv);
+
+	BOOST_TEST(cv.container()[0] == 1);
+	BOOST_TEST(cv.value() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{ { 2 }, {
+		gt::mutable_tree{ {1} }
+	}}, result;
+
+	container_value cv;
+	cv.container({1});
+	cv.value(2);
+	gt::encode(cv, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ContainerValue
+
+BOOST_AUTO_TEST_SUITE_END() // Pair
+
+BOOST_AUTO_TEST_SUITE(ThreePlus)
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{ {
+		gt::mutable_tree{ { 1 } },
+		gt::mutable_tree{ { 2 } },
+		gt::mutable_tree{ { 3 } }
+	}}, result;
+
+	triple vals;
+	vals.first(1);
+	vals.second(2);
+	vals.third(3);
+	gt::encode(vals, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{ {
+		gt::mutable_tree{ { 1 } },
+		gt::mutable_tree{ { 2 } },
+		gt::mutable_tree{ { 3 } }
+	}};
+
+	triple vals;
+	gt::decode(tr, vals);
+
+	BOOST_CHECK(vals.first() == 1);
+	BOOST_CHECK(vals.second() == 2);
+	BOOST_CHECK(vals.third() == 3);
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ThreePlus
+
+BOOST_AUTO_TEST_SUITE_END() // ADT

@@ -170,7 +170,9 @@ namespace gulachek::gtree
 	>
 	void __encode_seq(const SeqIt &it, MutableTree &tr)
 	{
-		encode(*it, tr.child(index));
+		using namespace boost::fusion;
+		const typename result_of::value_of<SeqIt>::type &x = *it;
+		encode(x, tr.child(index));
 		__encode_seq<size, index+1>(next(it), tr);
 	}
 
@@ -193,7 +195,12 @@ namespace gulachek::gtree
 	>
 	void __decode_seq(const Tree &tree, SeqIt &it)
 	{
-		decode(tree.child(index), *it);
+		using namespace boost::fusion;
+		typename result_of::value_of<SeqIt>::type x{};
+
+		decode(tree.child(index), x);
+		*it = std::move(x);
+
 		__decode_seq<size, index+1>(tree, next(it));
 	}
 
@@ -206,16 +213,36 @@ namespace gulachek::gtree
 	{
 		using namespace boost::fusion;
 		constexpr auto n = result_of::size<Sequence>::value;
-		auto first = begin(seq);
+
+		const auto first = begin(seq);
 
 		if constexpr (n == 1)
 		{
-			encode(*first, tree);
+			using first_type =
+				typename result_of::begin<Sequence>::type;
+
+			const typename result_of::value_of<first_type>::type
+				&f = *first;
+
+			encode(f, tree);
 		}
 		else if constexpr (n == 2)
 		{
+			using first_type =
+				typename result_of::begin<Sequence>::type;
+
+			const typename result_of::value_of<first_type>::type
+				&f = *first;
+
+			using second_type =
+				typename result_of::next<first_type>::type;
+
 			auto second = next(first);
-			__encode_pair(*first, *second, tree);
+
+			const typename result_of::value_of<second_type>::type
+				&s = *second;
+
+			__encode_pair(f, s, tree);
 		}
 		else
 		{
@@ -235,14 +262,29 @@ namespace gulachek::gtree
 		constexpr auto n = result_of::size<Sequence>::value;
 		auto first = begin(seq);
 
+		using first_type =
+			typename result_of::begin<Sequence>::type;
+
 		if constexpr (n == 1)
 		{
-			decode(tree, *first);
+			typename result_of::value_of<first_type>::type f{};
+			decode(tree, f);
+			*first = std::move(f);
 		}
 		else if constexpr (n == 2)
 		{
 			auto second = next(first);
-			__decode_pair(tree, *first, *second);
+
+			typename result_of::value_of<first_type>::type f{};
+			using second_type =
+				typename result_of::next<first_type>::type;
+
+			typename result_of::value_of<second_type>::type s{};
+
+			__decode_pair(tree, f, s);
+
+			*first = std::move(f);
+			*second = std::move(s);
 		}
 		else
 		{
