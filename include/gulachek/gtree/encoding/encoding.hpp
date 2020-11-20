@@ -52,27 +52,33 @@ namespace gulachek::gtree
 				);
 	}
 
+	// Use this to encode your class/struct from raw trees
+	struct raw_encoding {};
+
 	// Specify an encoding type that your class can convert
 	// to/from
 	template <typename MutableTree, typename T,
-		typename T::gtree_encoding* = nullptr
+		std::enable_if_t<
+			!std::is_same_v<typename T::gtree_encoding, raw_encoding>,
+			void*> = nullptr
 			>
 	void encode(const T &val, MutableTree &tree)
 	{
-		using Encoding = typename T::gtree_encoding;
-		const Encoding &temp = T::gtree_encode(val);
+		typename T::gtree_encoding temp;
+		val.gtree_encode(temp);
 		encode(temp, tree);
 	}
 
 	template <typename Tree, typename T,
-		typename T::gtree_encoding* = nullptr
+		std::enable_if_t<
+			!std::is_same_v<typename T::gtree_encoding, raw_encoding>,
+			void*> = nullptr
 			>
 	void decode(const Tree &tree, T &val)
 	{
-		using Encoding = typename T::gtree_encoding;
-		Encoding temp;
+		typename T::gtree_encoding temp;
 		decode(tree, temp);
-		val = T::gtree_decode(std::move(temp));
+		val.gtree_decode(temp);
 	}
 
 	template <typename T>

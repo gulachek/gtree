@@ -24,14 +24,14 @@ struct Foo
 
 	gtree_encoding n;
 
-	static const gtree_encoding& gtree_encode(const Foo &foo)
+	void gtree_encode(unsigned int &n) const
 	{
-		return foo.n;
+		n = this->n;
 	}
 
-	static Foo gtree_decode(gtree_encoding &&n)
+	void gtree_decode(unsigned int n)
 	{
-		return Foo{n};
+		this->n = n;
 	}
 };
 

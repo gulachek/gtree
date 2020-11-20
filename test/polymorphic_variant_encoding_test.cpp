@@ -28,8 +28,8 @@ struct A : Base {
 	A() = default;
 	A(uint n) : n{n} {}
 
-	static const uint& gtree_encode(const A &a) { return a.n; }
-	static A gtree_decode(uint &&n) { return A{n}; }
+	void gtree_encode(uint &n) const {n = this->n; }
+	void gtree_decode(uint n) { this->n = n; }
 
 	uint foo() override { return n; }
 	uint bar() const override { return n; }
@@ -41,8 +41,8 @@ struct B : Base {
 	B() = default;
 	B(uint n) : n{n} {}
 
-	static const uint& gtree_encode(const B &a) { return a.n; }
-	static B gtree_decode(uint &&n) { return B{n}; }
+	void gtree_encode(uint &n) const {n = this->n; }
+	void gtree_decode(uint n) { this->n = n; }
 
 	uint foo() override { return 2*n; }
 	uint bar() const override { return 2*n; }

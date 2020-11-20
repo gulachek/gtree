@@ -37,15 +37,12 @@ namespace gulachek::gtree
 			{}
 
 			typedef variant_type gtree_encoding;
-			static const gtree_encoding& gtree_encode(
-					const polymorphic_variant &polyvar
-					)
-			{ return polyvar._var; }
 
-			static polymorphic_variant gtree_decode(
-					gtree_encoding &&var
-					)
-			{ return polymorphic_variant{std::move(var)}; }
+			void gtree_encode(gtree_encoding &enc) const
+			{ enc = _var; }
+
+			void gtree_decode(const gtree_encoding &var)
+			{ _var = var; }
 
 			Base* operator->()
 			{
