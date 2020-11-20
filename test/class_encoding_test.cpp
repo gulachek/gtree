@@ -214,3 +214,80 @@ BOOST_AUTO_TEST_CASE(Decode)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ContainerEncoding
+
+BOOST_AUTO_TEST_SUITE(HybridEncoding)
+
+class hybrid
+{
+	public:
+		hybrid(
+				std::uint16_t n = 0,
+				std::vector<std::uint16_t> v = {}
+				) : _n{n}, _v{v} {}
+
+		using gtree_encoding = gt::hybrid_encoding;
+
+		template <typename MutableTree>
+		void gtree_encode(MutableTree &tr) const
+		{
+			gt::encode(_n, tr);
+			gt::encode(_v, tr);
+		}
+
+		template <typename Tree>
+		void gtree_decode(const Tree &tr)
+		{
+			gt::decode(tr, _n);
+			gt::decode(tr, _v);
+		}
+
+		std::uint16_t n() const { return _n; }
+		std::vector<std::uint16_t> v() const { return _v; }
+
+	private:
+		std::uint16_t _n;
+		std::vector<std::uint16_t> _v;
+};
+
+BOOST_AUTO_TEST_CASE(UsesValue)
+{
+	BOOST_TEST(gt::uses_value<hybrid>::value);
+}
+
+BOOST_AUTO_TEST_CASE(UsesChildren)
+{
+	BOOST_TEST(gt::uses_children<hybrid>::value);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{{1}, {
+		gt::mutable_tree{ {2} },
+		gt::mutable_tree{ {3} },
+		gt::mutable_tree{ {4} }
+	}}, result;
+
+	std::vector<std::uint16_t> v = {2, 3, 4};
+	hybrid h{1, v};
+	gt::encode(h, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{{1}, {
+		gt::mutable_tree{ {2} },
+		gt::mutable_tree{ {3} },
+		gt::mutable_tree{ {4} }
+	}};
+
+	hybrid h;
+	gt::decode(tr, h);
+
+	std::vector<std::uint16_t> expect = {2, 3, 4};
+	BOOST_TEST(h.n() == 1);
+	BOOST_TEST(h.v() == expect, tt::per_element());
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ContainerEncoding

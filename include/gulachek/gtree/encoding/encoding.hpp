@@ -57,18 +57,22 @@ namespace gulachek::gtree
 	// Use this to encode your class/struct from raw trees
 	struct value_encoding {};
 	struct container_encoding {};
+	struct hybrid_encoding {};
 
 	using __manual_encodings = boost::mpl::set<
 		value_encoding,
-		container_encoding
+		container_encoding,
+		hybrid_encoding
 		>;
 
 	using __manual_uses_value = boost::mpl::set<
-		value_encoding
+		value_encoding,
+		hybrid_encoding
 		>;
 
 	using __manual_uses_children = boost::mpl::set<
-		container_encoding
+		container_encoding,
+		hybrid_encoding
 		>;
 
 	// Specify an encoding type that your class can convert
