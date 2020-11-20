@@ -145,3 +145,72 @@ BOOST_AUTO_TEST_CASE(Decode)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ValueEncoding
+
+BOOST_AUTO_TEST_SUITE(ContainerEncoding)
+
+class cont
+{
+	public:
+		cont(std::vector<std::uint16_t> v = {}) : _v{v} {}
+
+		using gtree_encoding = gt::container_encoding;
+
+		template <typename MutableTree>
+		void gtree_encode(MutableTree &tr) const
+		{
+			gt::encode(_v, tr);
+		}
+
+		template <typename Tree>
+		void gtree_decode(const Tree &tr)
+		{
+			gt::decode(tr, _v);
+		}
+
+		std::vector<std::uint16_t> v() const { return _v; }
+
+	private:
+		std::vector<std::uint16_t> _v;
+};
+
+BOOST_AUTO_TEST_CASE(NoValue)
+{
+	BOOST_TEST(!gt::uses_value<cont>::value);
+}
+
+BOOST_AUTO_TEST_CASE(UsesChildren)
+{
+	BOOST_TEST(gt::uses_children<cont>::value);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree expect{{
+		gt::mutable_tree{ {1} },
+		gt::mutable_tree{ {2} },
+		gt::mutable_tree{ {3} }
+	}}, result;
+
+	std::vector<std::uint16_t> v = {1, 2, 3};
+	cont c{v};
+	gt::encode(c, result);
+
+	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr{{
+		gt::mutable_tree{ {1} },
+		gt::mutable_tree{ {2} },
+		gt::mutable_tree{ {3} }
+	}};
+
+	cont c;
+	gt::decode(tr, c);
+
+	std::vector<std::uint16_t> expect = {1, 2, 3};
+	BOOST_TEST(c.v() == expect, tt::per_element());
+}
+
+BOOST_AUTO_TEST_SUITE_END() // ContainerEncoding
