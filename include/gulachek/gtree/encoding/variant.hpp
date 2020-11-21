@@ -166,6 +166,18 @@ namespace gulachek::gtree
 		__decode_functor<Variant, Tree> ftor{tree, val};
 		__run_at_elem<seq>(index, ftor);
 	}
+
+	template <typename T>
+	struct uses_value<
+		T,
+		enable_t<typename variant_encoding<T>::sequence>
+	> : std::true_type {};
+
+	template <typename T>
+	struct uses_children<
+		T,
+		enable_t<typename variant_encoding<T>::sequence>
+	> : std::true_type {};
 }
 
 #endif

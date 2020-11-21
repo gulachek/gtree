@@ -5,10 +5,11 @@
 
 namespace gulachek::gtree
 {
-	// Optional has wrapped value either present or nah
-	
 	template <typename T>
 	struct uses_value<std::optional<T>> : std::false_type {};
+
+	template <typename T>
+	struct uses_children<std::optional<T>> : std::true_type {};
 
 	template <typename Tree, typename T>
 	void encode(const std::optional<T> &val, Tree &tree)

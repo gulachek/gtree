@@ -5,9 +5,15 @@
 
 namespace gulachek::gtree
 {
-	// Does the type's encoding ever have a value? Opt out;
-	template <typename T, typename Extend = void*>
-	struct uses_value : std::true_type {};
+	template <typename T>
+	struct enable { using type = void; };
+
+	template <typename T>
+	using enable_t = typename enable<T>::type;
+
+	// Does the type's encoding ever have a value?
+	template <typename T, typename Enable = void>
+	struct uses_value {};
 
 	template <typename T>
 	struct is_pure_container
@@ -15,9 +21,9 @@ namespace gulachek::gtree
 		static constexpr bool value = !uses_value<T>::value;
 	};
 
-	// Does the type's encoding ever have children? Opt out.
-	template <typename T, typename Extend = void*>
-	struct uses_children : std::true_type {};
+	// Does the type's encoding ever have children?
+	template <typename T, typename Enable = void>
+	struct uses_children {};
 
 	template <typename T>
 	struct is_pure_value
@@ -134,12 +140,6 @@ namespace gulachek::gtree
 	}
 
 	template <typename T>
-	struct __subst_void_star
-	{
-		using type = void*;
-	};
-
-	template <typename T>
 	struct uses_value<
 		T,
 		std::enable_if_t<
@@ -147,7 +147,7 @@ namespace gulachek::gtree
 				__manual_encodings,
 				typename T::gtree_encoding
 			>::value,
-			void*>
+			void>
 			> :
 		uses_value<typename T::gtree_encoding> {};
 
@@ -159,7 +159,7 @@ namespace gulachek::gtree
 				__manual_encodings,
 				typename T::gtree_encoding
 			>::value,
-			void*>
+			void>
 			>
 	{
 		static constexpr bool value =
@@ -176,7 +176,7 @@ namespace gulachek::gtree
 				__manual_encodings,
 				typename T::gtree_encoding
 			>::value,
-			void*>
+			void>
 			> :
 		uses_children<typename T::gtree_encoding> {};
 
@@ -188,7 +188,7 @@ namespace gulachek::gtree
 				__manual_encodings,
 				typename T::gtree_encoding
 			>::value,
-			void*>
+			void>
 			>
 	{
 		static constexpr bool value =

@@ -10,6 +10,9 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_value<std::set<T>> : std::false_type {};
 
+	template <typename T>
+	struct uses_children<std::set<T>> : std::true_type {};
+
 	template <typename MutableTree, typename T>
 	void encode(const std::set<T> &set, MutableTree &tree)
 	{

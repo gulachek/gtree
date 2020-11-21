@@ -12,19 +12,15 @@ namespace gulachek::gtree
 	struct empty_encoding {};
 
 	template <typename T>
-	struct __2vs
-	{ using type = void*; };
-
-	template <typename T>
 	struct uses_value<
 		T,
-		typename __2vs<typename empty_encoding<T>::type>::type
+		enable_t<typename empty_encoding<T>::type>
 	> : std::false_type {};
 
 	template <typename T>
 	struct uses_children<
 		T,
-		typename __2vs<typename empty_encoding<T>::type>::type
+		enable_t<typename empty_encoding<T>::type>
 	> : std::false_type {};
 
 	template <

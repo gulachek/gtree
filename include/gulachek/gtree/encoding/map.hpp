@@ -11,6 +11,9 @@ namespace gulachek::gtree
 	template <typename K, typename V, typename C, typename A>
 	struct uses_value<std::map<K,V,C,A>> : std::false_type {};
 
+	template <typename K, typename V, typename C, typename A>
+	struct uses_children<std::map<K,V,C,A>> : std::true_type {};
+
 	template <typename MutableTree, typename K, typename V, typename C, typename A>
 	void encode(const std::map<K,V,C,A> &val, MutableTree &tree)
 	{

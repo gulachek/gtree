@@ -18,18 +18,15 @@ namespace gulachek::gtree
 	struct convert_encoding {};
 
 	template <typename T>
-	struct __vs { using type = void*; };
-
-	template <typename T>
 	struct uses_value<
 		T,
-		typename __vs<typename convert_encoding<T>::source>::type
+		enable_t<typename convert_encoding<T>::source>
 			> : uses_value<typename convert_encoding<T>::source> {};
 
 	template <typename T>
 	struct uses_children<
 		T,
-		typename __vs<typename convert_encoding<T>::source>::type
+		enable_t<typename convert_encoding<T>::source>
 			> : uses_children<
 			typename convert_encoding<T>::source> {};
 

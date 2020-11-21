@@ -10,6 +10,9 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_value<std::vector<T>> : std::false_type {};
 
+	template <typename T>
+	struct uses_children<std::vector<T>> : std::true_type {};
+
 	// Vectors parse children sequentially
 	template <typename MutableTree,
 					 typename T, typename Allocator>

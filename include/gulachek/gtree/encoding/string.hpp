@@ -7,7 +7,9 @@
 
 namespace gulachek::gtree
 {
-	// Strings are child-less
+	template <>
+	struct uses_value<std::string> : std::true_type {};
+
 	template <>
 	struct uses_children<std::string> : std::false_type {};
 

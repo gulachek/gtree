@@ -12,18 +12,18 @@
 
 namespace gulachek::gtree
 {
-	template <typename T, typename U>
+	template <typename T>
 	struct __enable_if_seq : std::enable_if<
-			boost::fusion::traits::is_sequence<T>::value, U> {};
+			boost::fusion::traits::is_sequence<T>::value, void> {};
 
-	template <typename T, typename U>
+	template <typename T>
 	using __enable_if_seq_t =
-		typename __enable_if_seq<T, U>::type;
+		typename __enable_if_seq<T>::type;
 
 	template <typename T>
 	struct uses_value<
 		T,
-		__enable_if_seq_t<T, void*>
+		__enable_if_seq_t<T>
 		>
 	{
 		static constexpr bool _value()
@@ -59,7 +59,7 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_children<
 		T,
-		__enable_if_seq_t<T, void*>
+		__enable_if_seq_t<T>
 		>
 	{
 		static constexpr bool _value()
@@ -207,7 +207,7 @@ namespace gulachek::gtree
 	template <
 		typename MutableTree,
 		typename Sequence,
-		__enable_if_seq_t<Sequence, int> = 0
+		__enable_if_seq_t<Sequence>* = nullptr
 						 >
 	void encode(const Sequence &seq, MutableTree &tree)
 	{
@@ -254,7 +254,7 @@ namespace gulachek::gtree
 	template <
 		typename Tree,
 		typename Sequence,
-		__enable_if_seq_t<Sequence, int> = 0
+		__enable_if_seq_t<Sequence>* = nullptr
 						 >
 	void decode(const Tree &tree, Sequence &seq)
 	{

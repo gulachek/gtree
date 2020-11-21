@@ -12,14 +12,14 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_value<
 		T,
-		typename std::enable_if<std::is_unsigned_v<T>, void*>::type
+		typename std::enable_if<std::is_unsigned_v<T>, void>::type
 	> : std::true_type {};
 
 	// Unsigned integers don't use children
 	template <typename T>
 	struct uses_children<
 		T,
-		typename std::enable_if<std::is_unsigned_v<T>, void*>::type
+		typename std::enable_if<std::is_unsigned_v<T>, void>::type
 	> : std::false_type {};
 
 	// Unsigned Integers are in little endian format
