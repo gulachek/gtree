@@ -12,6 +12,7 @@
 #include "gulachek/gtree/encoding/map.hpp"
 #include "gulachek/gtree/encoding/polymorphic_variant.hpp"
 #include "gulachek/gtree/encoding/set.hpp"
+#include "gulachek/gtree/encoding/conversion_encoding.hpp"
 
 #include <type_traits>
 #include <string>

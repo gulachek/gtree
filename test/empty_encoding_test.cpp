@@ -15,32 +15,38 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
+class empty {};
+
+template <>
+struct gt::empty_encoding<empty> { using type = empty; };
+
 BOOST_AUTO_TEST_CASE(NoValue)
 {
-	BOOST_TEST(!gt::uses_value<gt::empty>::value);
+	typename gt::empty_encoding<empty>::type e;
+	BOOST_TEST(!gt::uses_value<empty>::value);
 }
 
 BOOST_AUTO_TEST_CASE(NoChildren)
 {
-	BOOST_TEST(!gt::uses_children<gt::empty>::value);
+	BOOST_TEST(!gt::uses_children<empty>::value);
 }
 
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr;
 
-	gt::empty empty;
-	gt::decode(tr, empty);
+	empty mt;
+	gt::decode(tr, mt);
 
 	// as long as this compiles/runs, we're good
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-	gt::empty empty;
+	empty mt;
 
 	gt::mutable_tree tr{ {10} };
-	gt::encode(empty, tr);
+	gt::encode(mt, tr);
 
 	BOOST_TEST(gt::is_empty(tr));
 }

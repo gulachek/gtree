@@ -39,10 +39,12 @@ BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesValue)
 {
 	struct Container {
 		using gtree_encoding = std::vector<std::size_t>;
+		std::vector<std::size_t> v;
 	};
 
 	struct Value {
 		using gtree_encoding = std::size_t;
+		std::size_t n;
 	};
 
 	BOOST_TEST(gt::uses_value<Value>::value);

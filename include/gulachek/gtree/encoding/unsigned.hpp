@@ -8,6 +8,13 @@
 
 namespace gulachek::gtree
 {
+	// Unsigned integers use values
+	template <typename T>
+	struct uses_value<
+		T,
+		typename std::enable_if<std::is_unsigned_v<T>, void*>::type
+	> : std::true_type {};
+
 	// Unsigned integers don't use children
 	template <typename T>
 	struct uses_children<
