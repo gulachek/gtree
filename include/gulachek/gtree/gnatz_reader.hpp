@@ -1,6 +1,10 @@
 #ifndef GULACHEK_GTREE_GNATZ_READER_HPP
 #define GULACHEK_GTREE_GNATZ_READER_HPP
 
+#include <cstdlib>
+#include <cstdint>
+#include <stdexcept>
+
 namespace gulachek::gtree
 {
 	template <typename InStream>
