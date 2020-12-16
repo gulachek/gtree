@@ -67,6 +67,30 @@ BOOST_AUTO_TEST_CASE(AdaptChild)
 	BOOST_TEST(*two.data() == 2);
 }
 
+BOOST_AUTO_TEST_CASE(AdaptUsingMakeDynamic)
+{
+	std::vector<std::size_t> v = {1, 2, 3};
+	gt::mutable_tree tr;
+	gt::encode(v, tr);
+
+	auto adapt = gt::make_dynamic<gt::static_to_dynamic<gt::mutable_tree>>(tr);
+
+	auto two = value(*child(*adapt, 1));
+	BOOST_TEST(*two.data() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(AdaptUsingToDynamic)
+{
+	std::vector<std::size_t> v = {1, 2, 3};
+	gt::mutable_tree tr;
+	gt::encode(v, tr);
+
+	auto adapt = gt::to_dynamic(tr);
+
+	auto two = value(*child(*adapt, 1));
+	BOOST_TEST(*two.data() == 2);
+}
+
 BOOST_AUTO_TEST_CASE(DynamicMadeStatic)
 {
 	std::vector<std::size_t> expect = {1, 2, 3}, actual;

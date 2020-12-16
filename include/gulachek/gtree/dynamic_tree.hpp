@@ -17,14 +17,21 @@ namespace gulachek::gtree
 			child(std::size_t i) const = 0;
 	};
 
+	typedef std::shared_ptr<const dynamic_tree> dynamic_ref;
+
+	template <typename T, typename ...Args>
+	std::shared_ptr<T> make_dynamic(Args&&... args)
+	{
+		return std::make_shared<T>(std::forward<Args>(args)...);
+	}
+
 	// Implements static tree requirements
 	class dynamic_to_static
 	{
 		public:
 			dynamic_to_static() : _ptr{nullptr} {}
 
-			dynamic_to_static(const
-					std::shared_ptr<const dynamic_tree> &tr) : _ptr{tr}
+			dynamic_to_static(const dynamic_ref &tr) : _ptr{tr}
 			{}
 
 			const block value() const;
@@ -32,7 +39,7 @@ namespace gulachek::gtree
 			dynamic_to_static child(std::size_t i) const;
 
 		private:
-			std::shared_ptr<const dynamic_tree> _ptr;
+			dynamic_ref _ptr;
 	};
 
 	// Adapt static tree to dynamic
@@ -65,6 +72,14 @@ namespace gulachek::gtree
 		private:
 			const Tree &_t;
 	};
+
+	template <typename Tree>
+	dynamic_ref to_dynamic(Tree &&t)
+	{
+		return make_dynamic<static_to_dynamic<Tree>>(
+				std::forward<Tree>(t)
+				);
+	}
 }
 
 #endif
