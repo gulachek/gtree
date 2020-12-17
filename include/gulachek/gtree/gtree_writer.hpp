@@ -53,6 +53,9 @@ namespace gulachek::gtree
 				[&](const block &b, std::size_t nchild){
 					_os.write((const char*)b.data(), b.size());
 				});
+
+				// Make sure to flush output
+				_os.flush();
 			}
 
 		private:

@@ -58,7 +58,8 @@ struct FakeNumberWriter
 
 struct FakeStream
 {
-	void write(const char *s, std::size_t n){}
+	FakeStream& write(const char *s, std::size_t n){ return *this; }
+	FakeStream& flush() { return *this; }
 };
 
 BOOST_AUTO_TEST_CASE(WritesTheSizeOfNodeBlockAsNumber)
@@ -198,4 +199,41 @@ BOOST_AUTO_TEST_CASE(WritesEachValueBFS)
 	_writer.write(StringTree{"doesn't matter"});
 
 	BOOST_TEST(_os.str() == "untofreethorthithe");
+}
+
+struct spy_flush_ostream
+{
+	public:
+		spy_flush_ostream() : _count{0} {}
+
+		spy_flush_ostream& flush()
+		{
+			++_count;
+			return *this;
+		}
+
+		std::size_t count() const
+		{
+			return _count;
+		}
+
+		spy_flush_ostream& write(const char* s, std::streamsize n)
+		{
+			return *this;
+		}
+
+	private:
+		std::size_t _count;
+};
+
+BOOST_AUTO_TEST_CASE(FlushesOnce)
+{
+	FakeBFS _bfs;
+	FakeNumberWriter _nums;
+	spy_flush_ostream _os;
+	gt::gtree_writer _writer{_bfs, _nums, _os};
+
+	_writer.write(StringTree{"doesn't matter"});
+
+	BOOST_TEST(_os.count() == 1);
 }
