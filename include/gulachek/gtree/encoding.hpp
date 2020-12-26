@@ -13,6 +13,7 @@
 #include "gulachek/gtree/encoding/polymorphic_variant.hpp"
 #include "gulachek/gtree/encoding/set.hpp"
 #include "gulachek/gtree/encoding/conversion_encoding.hpp"
+#include "gulachek/gtree/encoding/dictionary.hpp"
 
 #include <type_traits>
 #include <string>
