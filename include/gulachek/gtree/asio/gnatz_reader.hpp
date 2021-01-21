@@ -1,5 +1,5 @@
-#ifndef GULACHEK_GTREE_GNATZ_READER_HPP
-#define GULACHEK_GTREE_GNATZ_READER_HPP
+#ifndef GULACHEK_GTREE_ASIO_GNATZ_READER_HPP
+#define GULACHEK_GTREE_ASIO_GNATZ_READER_HPP
 
 #include "gulachek/gtree/asio/error.hpp"
 #include <boost/asio.hpp>
