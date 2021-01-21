@@ -4,6 +4,7 @@
 #include "gulachek/gtree/asio/gtree_reader.hpp"
 #include "gulachek/gtree/gnatz_tree_builder.hpp"
 #include "gulachek/gtree/asio/gnatz_reader.hpp"
+#include "gulachek/gtree/tree.hpp"
 
 namespace gulachek::gtree::asio
 {
@@ -15,6 +16,8 @@ namespace gulachek::gtree::asio
 			typedef gtree_reader<gnz_type, AsyncReadStream, gnatz_tree_builder> gtree_type;
 
 		public:
+			typedef tree tree_type;
+
 			typedef typename gtree_type::executor_type executor_type;
 
 			treeder(AsyncReadStream &stream) :

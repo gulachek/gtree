@@ -71,3 +71,14 @@ BOOST_AUTO_TEST_CASE(OneBlockReadCompletes)
 
 	auto t = ft.get();
 }
+
+BOOST_AUTO_TEST_CASE(TreeTypeIsLibraryTree)
+{
+	using treeder = gta::treeder<
+		gta::memory_read_stream<asio::io_context>>;
+
+	BOOST_TEST((std::is_same_v<
+				gt::tree,
+				treeder::tree_type
+					>));
+}

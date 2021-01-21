@@ -16,6 +16,8 @@ namespace gulachek::gtree
 	class itreem
 	{
 		public:
+			typedef tree tree_type;
+
 			itreem(InStream &is) :
 				_is{is},
 				_gnz{is},

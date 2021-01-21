@@ -55,3 +55,11 @@ BOOST_AUTO_TEST_CASE(Basic)
 	BOOST_TEST(c == "c");
 	BOOST_TEST(tc.child_count() == 0);
 }
+
+BOOST_AUTO_TEST_CASE(TreeTypeIsLibraryTree)
+{
+	BOOST_TEST((std::is_same_v<
+				gt::tree,
+				gt::itreem<std::istream>::tree_type
+					>));
+}
