@@ -13,12 +13,12 @@
 namespace gulachek::gtree
 {
 	template <typename InStream>
-	class itreem
+	class basic_itreem
 	{
 		public:
 			typedef tree tree_type;
 
-			itreem(InStream &is) :
+			basic_itreem(InStream &is) :
 				_is{is},
 				_gnz{is},
 				_builder{},
@@ -44,11 +44,13 @@ namespace gulachek::gtree
 			gtree_reader<decltype(_gnz), InStream, decltype(_builder)> _gtree;
 			bool _good;
 	};
+
+	typedef basic_itreem<std::istream> itreem;
 }
 
 template <typename InStream, typename T>
-gulachek::gtree::itreem<InStream>& operator >> (
-		gulachek::gtree::itreem<InStream>& it,
+gulachek::gtree::basic_itreem<InStream>& operator >> (
+		gulachek::gtree::basic_itreem<InStream>& it,
 		T &t
 		)
 {

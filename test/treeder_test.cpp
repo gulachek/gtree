@@ -60,6 +60,6 @@ BOOST_AUTO_TEST_CASE(TreeTypeIsLibraryTree)
 {
 	BOOST_TEST((std::is_same_v<
 				gt::tree,
-				gt::itreem<std::istream>::tree_type
+				gt::itreem::tree_type
 					>));
 }

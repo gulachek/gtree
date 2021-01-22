@@ -2,6 +2,6 @@
 
 namespace gulachek::gtree
 {
-	itreem<decltype(std::cin)> tin{std::cin};
+	itreem tin{std::cin};
 	otreem<decltype(std::cout)> tout{std::cout};
 }
