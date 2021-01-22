@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.8)
 
 project(gtree)
 
-find_package(Boost REQUIRED system unit_test_framework)
+find_package(Boost REQUIRED
+	system
+	iostreams
+	unit_test_framework
+	)
 
 set(platform "gulachek_gtree_asio_platform")
 set(core "gulachek_gtree")
@@ -16,6 +20,7 @@ endif()
 add_library(${core}
 	src/tree.cpp
 	src/itreem.cpp
+	src/fd_itreem.cpp
 	src/dynamic_tree.cpp
 	src/block.cpp
 	src/gtree.cpp
@@ -33,6 +38,7 @@ target_compile_features(${core}
 
 target_link_libraries(${core}
 	PUBLIC Boost::boost
+	PRIVATE Boost::iostreams
 	)
 
 file(GLOB tests "test/*test.cpp")
