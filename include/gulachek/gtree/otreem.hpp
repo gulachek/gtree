@@ -1,10 +1,12 @@
 #ifndef GULACHEK_GTREE_OTREEM_HPP
 #define GULACHEK_GTREE_OTREEM_HPP
 
+#include "gulachek/gtree/tree.hpp"
 #include "gulachek/gtree/gtree_writer.hpp"
 #include "gulachek/gtree/bfs.hpp"
 #include "gulachek/gtree/gnatz_writer.hpp"
 #include "gulachek/gtree/mutable_tree.hpp"
+#include "gulachek/gtree/encoding.hpp"
 
 #include <ostream>
 

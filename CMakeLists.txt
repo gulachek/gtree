@@ -15,6 +15,7 @@ endif()
 
 add_library(${core}
 	src/tree.cpp
+	src/itreem.cpp
 	src/dynamic_tree.cpp
 	src/block.cpp
 	src/gtree.cpp

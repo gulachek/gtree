@@ -1,6 +1,7 @@
 #ifndef GULACHEK_GTREE_ENCODING_HPP
 #define GULACHEK_GTREE_ENCODING_HPP
 
+#include "gulachek/gtree/is_itreem.hpp"
 #include "gulachek/gtree/encoding/encoding.hpp"
 #include "gulachek/gtree/encoding/empty.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
@@ -89,6 +90,23 @@ namespace gulachek::gtree
 	 *
 	 */
 
+}
+
+template <
+	typename Itreem,
+	typename T,
+	std::enable_if_t<
+		gulachek::gtree::is_itreem<Itreem>::value,
+		int
+		> = 0
+	>
+Itreem& operator >> (Itreem& it, T &t)
+{
+	typename Itreem::tree_type tree;
+	if (it.read(&tree))
+		gulachek::gtree::decode(tree, t);
+
+	return it;
 }
 
 #endif
