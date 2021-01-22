@@ -2,6 +2,8 @@
 #define GULACHEK_GTREE_ENCODING_HPP
 
 #include "gulachek/gtree/is_itreem.hpp"
+#include "gulachek/gtree/is_otreem.hpp"
+#include "gulachek/gtree/mutable_tree.hpp"
 #include "gulachek/gtree/encoding/encoding.hpp"
 #include "gulachek/gtree/encoding/empty.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
@@ -107,6 +109,22 @@ Itreem& operator >> (Itreem& it, T &t)
 		gulachek::gtree::decode(tree, t);
 
 	return it;
+}
+
+template <
+	typename Otreem,
+	typename T,
+	std::enable_if_t<
+		gulachek::gtree::is_otreem<Otreem>::value,
+		int
+		> = 0
+	>
+Otreem& operator << (Otreem& ot, const T &val)
+{
+	gulachek::gtree::mutable_tree tree;
+	gulachek::gtree::encode(val, tree);
+	ot.write(tree);
+	return ot;
 }
 
 #endif

@@ -1,12 +1,10 @@
 #ifndef GULACHEK_GTREE_OTREEM_HPP
 #define GULACHEK_GTREE_OTREEM_HPP
 
-#include "gulachek/gtree/tree.hpp"
+#include "gulachek/gtree/is_otreem.hpp"
 #include "gulachek/gtree/gtree_writer.hpp"
 #include "gulachek/gtree/bfs.hpp"
 #include "gulachek/gtree/gnatz_writer.hpp"
-#include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
 
 #include <ostream>
 
@@ -41,18 +39,10 @@ namespace gulachek::gtree
 	};
 
 	typedef basic_otreem<std::ostream> otreem;
-}
 
-template <typename OutStream, typename T>
-gulachek::gtree::basic_otreem<OutStream>& operator << (
-		gulachek::gtree::basic_otreem<OutStream>& ot,
-		const T &val
-		)
-{
-	gulachek::gtree::mutable_tree tree;
-	gulachek::gtree::encode(val, tree);
-	ot.write(tree);
-	return ot;
+	template <typename Ostream>
+	struct is_otreem<basic_otreem<Ostream>> :
+		std::true_type {};
 }
 
 #endif

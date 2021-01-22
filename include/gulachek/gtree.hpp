@@ -5,6 +5,7 @@
 #include "gulachek/gtree/dynamic_tree.hpp"
 #include "gulachek/gtree/itreem.hpp"
 #include "gulachek/gtree/otreem.hpp"
+#include "gulachek/gtree/encoding.hpp"
 
 #include <iostream>
 
