@@ -11,10 +11,10 @@
 namespace gulachek::gtree
 {
 	template <typename Stream>
-	class otreem
+	class basic_otreem
 	{
 		public:
-			otreem(Stream &stream) :
+			basic_otreem(Stream &stream) :
 				_stream{stream},
 				_nums{stream},
 				_bfs{},
@@ -37,11 +37,13 @@ namespace gulachek::gtree
 			bfs _bfs;
 			GtWriter _writer;
 	};
+
+	typedef basic_otreem<std::ostream> otreem;
 }
 
 template <typename OutStream, typename T>
-gulachek::gtree::otreem<OutStream>& operator << (
-		gulachek::gtree::otreem<OutStream>& ot,
+gulachek::gtree::basic_otreem<OutStream>& operator << (
+		gulachek::gtree::basic_otreem<OutStream>& ot,
 		const T &val
 		)
 {

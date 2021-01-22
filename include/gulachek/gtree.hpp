@@ -10,8 +10,9 @@
 
 namespace gulachek::gtree
 {
-	extern otreem<decltype(std::cout)> tout;
+	extern otreem tout;
 	extern itreem tin;
+	extern otreem terr;
 }
 
 #endif
