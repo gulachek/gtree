@@ -12,7 +12,8 @@ namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(IsTree)
 {
-	BOOST_TEST(gt::is_tree<gt::dynamic_to_static>::value);
+	BOOST_TEST(gt::is_tree<
+			gt::dynamic_to_static<gt::dynamic_ref>>::value);
 }
 
 std::size_t child_count(const gt::dynamic_tree &tr)
@@ -102,6 +103,23 @@ BOOST_AUTO_TEST_CASE(DynamicMadeStatic)
 		gt::static_to_dynamic<gt::mutable_tree>>(tr);
 
 	gt::dynamic_to_static adapt{dynamic};
+
+	gt::decode(adapt, actual);
+
+	BOOST_TEST(actual == expect, tt::per_element());
+}
+
+BOOST_AUTO_TEST_CASE(DynamicNormalPointerMadeStatic)
+{
+	std::vector<std::size_t> expect = {1, 2, 3}, actual;
+	gt::mutable_tree tr;
+	gt::encode(expect, tr);
+
+	// we already know this works
+	auto dynamic = std::make_shared<
+		gt::static_to_dynamic<gt::mutable_tree>>(tr);
+
+	gt::dynamic_to_static adapt{dynamic.get()};
 
 	gt::decode(adapt, actual);
 

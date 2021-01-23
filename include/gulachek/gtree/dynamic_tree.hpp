@@ -26,20 +26,33 @@ namespace gulachek::gtree
 	}
 
 	// Implements static tree requirements
+	template <typename DynamicPtr>
 	class dynamic_to_static
 	{
 		public:
 			dynamic_to_static() : _ptr{nullptr} {}
 
-			dynamic_to_static(const dynamic_ref &tr) : _ptr{tr}
+			dynamic_to_static(DynamicPtr tr) : _ptr{tr}
 			{}
 
-			const block value() const;
-			std::size_t child_count() const;
-			dynamic_to_static child(std::size_t i) const;
+			const block value() const
+			{
+				return _ptr->value();
+			}
+
+			std::size_t child_count() const
+			{
+				return _ptr->child_count();
+			}
+
+			auto child(std::size_t i) const
+			{
+				return dynamic_to_static<dynamic_ref>
+					{_ptr->child(i)};
+			}
 
 		private:
-			dynamic_ref _ptr;
+			DynamicPtr _ptr;
 	};
 
 	// Adapt static tree to dynamic
