@@ -5,6 +5,7 @@
 #include "gulachek/gtree/is_otreem.hpp"
 #include "gulachek/gtree/mutable_tree.hpp"
 #include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding/tree.hpp"
 #include "gulachek/gtree/encoding/empty.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
