@@ -83,15 +83,13 @@ namespace gulachek::gtree
 			}
 
 		private:
-			const Tree &_t;
+			Tree _t;
 	};
 
 	template <typename Tree>
-	dynamic_ref to_dynamic(Tree &&t)
+	dynamic_ref to_dynamic(const Tree &t)
 	{
-		return make_dynamic<static_to_dynamic<Tree>>(
-				std::forward<Tree>(t)
-				);
+		return make_dynamic<static_to_dynamic<Tree>>(t);
 	}
 }
 

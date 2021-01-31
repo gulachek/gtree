@@ -64,7 +64,8 @@ BOOST_AUTO_TEST_CASE(AdaptChild)
 
 	gt::static_to_dynamic adapt{tr};
 
-	auto two = value(*child(adapt, 1));
+	auto c = child(adapt, 1);
+	auto two = value(*c);
 	BOOST_TEST(*two.data() == 2);
 }
 
@@ -76,7 +77,8 @@ BOOST_AUTO_TEST_CASE(AdaptUsingMakeDynamic)
 
 	auto adapt = gt::make_dynamic<gt::static_to_dynamic<gt::mutable_tree>>(tr);
 
-	auto two = value(*child(*adapt, 1));
+	auto c = child(*adapt, 1);
+	auto two = value(*c);
 	BOOST_TEST(*two.data() == 2);
 }
 
@@ -88,7 +90,8 @@ BOOST_AUTO_TEST_CASE(AdaptUsingToDynamic)
 
 	auto adapt = gt::to_dynamic(tr);
 
-	auto two = value(*child(*adapt, 1));
+	auto c = child(*adapt, 1);
+	auto two = value(*c);
 	BOOST_TEST(*two.data() == 2);
 }
 
@@ -124,4 +127,16 @@ BOOST_AUTO_TEST_CASE(DynamicNormalPointerMadeStatic)
 	gt::decode(adapt, actual);
 
 	BOOST_TEST(actual == expect, tt::per_element());
+}
+
+BOOST_AUTO_TEST_CASE(NestedAdaptersHaveValidChildren)
+{
+	gt::mutable_tree s0{{}, {{}}};
+	auto d0 = gt::to_dynamic(s0);
+	gt::dynamic_to_static s1{d0};
+	auto d1 = gt::to_dynamic(s1);
+	gt::dynamic_to_static s2{d1};
+
+	BOOST_TEST(d1->child(0)->child_count() == 0);
+	BOOST_TEST(s2.child(0).child_count() == 0);
 }
