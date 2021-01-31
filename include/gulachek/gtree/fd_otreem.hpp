@@ -14,6 +14,13 @@ namespace gulachek::gtree
 	class fd_otreem
 	{
 		public:
+			fd_otreem() :
+				_fdsink{},
+				_sb{_fdsink},
+				_os{&_sb},
+				_ot{_os}
+			{}
+
 			fd_otreem(int fd) :
 				_fdsink{fd, bio::never_close_handle},
 				_sb{_fdsink},
