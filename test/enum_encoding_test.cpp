@@ -1,0 +1,69 @@
+#define BOOST_TEST_MODULE EnumEncodingTest
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
+#include <boost/test/data/monomorphic.hpp>
+#include <boost/test/data/test_case.hpp>
+namespace tt = boost::test_tools;
+namespace bd = boost::unit_test::data;
+
+#include "gulachek/gtree/mutable_tree.hpp"
+#include "gulachek/gtree/encoding.hpp"
+
+namespace gt = gulachek::gtree;
+
+enum class scoped_enum : std::uint8_t
+{
+	zero,
+	one,
+	two
+};
+
+enum unscoped_enum : std::uint8_t
+{
+	zero,
+	one,
+	two
+};
+
+BOOST_AUTO_TEST_CASE(UsesValue)
+{
+	BOOST_TEST(gt::uses_value<scoped_enum>::value);
+	BOOST_TEST(gt::uses_value<unscoped_enum>::value);
+}
+
+BOOST_AUTO_TEST_CASE(NoChildren)
+{
+	BOOST_TEST(!gt::uses_children<scoped_enum>::value);
+	BOOST_TEST(!gt::uses_children<unscoped_enum>::value);
+}
+
+BOOST_AUTO_TEST_CASE(Decode)
+{
+	gt::mutable_tree tr;
+	std::uint8_t n = 1;
+	gt::encode(n, tr);
+
+	scoped_enum scoped;
+	unscoped_enum unscoped;
+
+	gt::decode(tr, scoped);
+	gt::decode(tr, unscoped);
+
+	BOOST_CHECK(scoped == scoped_enum::one);
+	BOOST_CHECK(unscoped == unscoped_enum::one);
+}
+
+BOOST_AUTO_TEST_CASE(Encode)
+{
+	gt::mutable_tree tr;
+	std::uint8_t scoped = 0, unscoped = 0;
+
+	gt::encode(scoped_enum::two, tr);
+	gt::decode(tr, scoped);
+
+	gt::encode(unscoped_enum::two, tr);
+	gt::decode(tr, unscoped);
+
+	BOOST_TEST(scoped == 2);
+	BOOST_TEST(unscoped == 2);
+}
