@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 {
 	gt::mutable_tree in{ {25} };
 
-	std::size_t n = 0;
+	std::uint8_t n = 0;
 	gt::decode(in, n);
 
 	BOOST_TEST(n == 25);
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 BOOST_AUTO_TEST_CASE(EncodeSingleByte)
 {
 	gt::mutable_tree tr;
-	gt::encode(25U, tr);
+	gt::encode((std::uint8_t)25U, tr);
 
 	std::size_t n = 0;
 	gt::decode(tr, n);

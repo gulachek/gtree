@@ -36,7 +36,10 @@ namespace gulachek::gtree
 		while (n > 0)
 		{
 			bytes.push_back(n);
-			n >>= 8;
+
+			// avoid compiler warning for width of type here
+			if constexpr (sizeof(T) == 1) n = 0;
+			else n >>= 8;
 		}
 
 		tree.value(bytes.begin(), bytes.end());
