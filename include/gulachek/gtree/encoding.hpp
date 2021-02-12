@@ -9,6 +9,7 @@
 #include "gulachek/gtree/encoding/empty.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/signed.hpp"
 #include "gulachek/gtree/encoding/enum.hpp"
 #include "gulachek/gtree/encoding/vector.hpp"
 #include "gulachek/gtree/encoding/variant.hpp"

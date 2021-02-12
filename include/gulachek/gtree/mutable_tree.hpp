@@ -77,6 +77,14 @@ namespace gulachek::gtree
 				};
 			}
 
+			block value()
+			{
+				return block{
+					_value.data(),
+					_value.size()
+				};
+			}
+
 			template <typename Iterator>
 			void value(Iterator first, Iterator last)
 			{

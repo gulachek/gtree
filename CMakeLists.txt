@@ -24,6 +24,7 @@ add_library(${core}
 	src/dynamic_tree.cpp
 	src/block.cpp
 	src/gtree.cpp
+	src/twos_complement.cpp
 	)
 
 target_include_directories(${core} PUBLIC
