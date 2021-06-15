@@ -5,25 +5,28 @@
 
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace gulachek::gtree
 {
 	// Implements Tree and mutable_tree requirements
 	class mutable_tree
 	{
+		typedef std::vector<std::uint8_t> value_type;
+
 		public:
 			mutable_tree() :
 				_value{},
 				_children{}
 			{}
 
-			mutable_tree(std::vector<std::uint8_t> &&value) :
-				_value{std::move(value)},
+			mutable_tree(value_type &&value) :
+				_value{std::make_shared<value_type>(std::move(value))},
 				_children{}
 			{}
 
 			mutable_tree(const std::vector<std::uint8_t> &value) :
-				_value{value},
+				_value{std::make_shared<value_type>(value)},
 				_children{}
 			{}
 
@@ -41,7 +44,7 @@ namespace gulachek::gtree
 					std::vector<std::uint8_t> &&value,
 					std::vector<mutable_tree> &&children
 					) :
-				_value{std::move(value)},
+				_value{std::make_shared<value_type>(std::move(value))},
 				_children{std::move(children)}
 			{}
 
@@ -49,7 +52,7 @@ namespace gulachek::gtree
 					const std::vector<std::uint8_t> &value,
 					std::vector<mutable_tree> &&children
 					) :
-				_value{value},
+				_value{std::make_shared<value_type>(value)},
 				_children{std::move(children)}
 			{}
 
@@ -57,7 +60,7 @@ namespace gulachek::gtree
 					std::vector<std::uint8_t> &&value,
 					const std::vector<mutable_tree> &children
 					) :
-				_value{std::move(value)},
+				_value{std::make_shared<value_type>(std::move(value))},
 				_children{children}
 			{}
 
@@ -65,30 +68,35 @@ namespace gulachek::gtree
 					const std::vector<std::uint8_t> &value,
 					const std::vector<mutable_tree> &children
 					) :
-				_value{value},
+				_value{std::make_shared<value_type>(value)},
 				_children{children}
 			{}
 
 			const block value() const
 			{
 				return block{
-						_value.data(),
-						_value.size()
+						_value ? _value->data() : nullptr,
+						_value ? _value->size() : 0
 				};
 			}
 
 			block value()
 			{
+				if (_value && _value.use_count() > 1)
+					_value = std::make_shared<value_type>(*_value);
+
 				return block{
-					_value.data(),
-					_value.size()
+					_value ? _value->data() : nullptr,
+					_value ? _value->size() : 0
 				};
 			}
 
 			template <typename Iterator>
 			void value(Iterator first, Iterator last)
 			{
-				_value = std::vector<std::uint8_t>{first, last};
+				_value = std::make_shared<value_type>(
+						std::vector<std::uint8_t>{first, last}
+						);
 			}
 
 			std::size_t child_count() const
@@ -104,7 +112,7 @@ namespace gulachek::gtree
 			{ return _children[i]; }
 
 		private:
-			std::vector<std::uint8_t> _value;
+			std::shared_ptr<value_type> _value;
 			std::vector<mutable_tree> _children;
 	};
 
