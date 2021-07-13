@@ -7,7 +7,10 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/variant.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/vector.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -17,13 +20,13 @@ namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(UsesValue)
 {
-	using my_var = std::variant<int, float>;
+	using my_var = std::variant<std::size_t, std::string>;
 	BOOST_TEST(gt::uses_value<my_var>::value);
 }
 
 BOOST_AUTO_TEST_CASE(UsesChildren)
 {
-	using my_var = std::variant<int, float>;
+	using my_var = std::variant<std::size_t, std::string>;
 	BOOST_TEST(gt::uses_children<my_var>::value);
 }
 
@@ -34,7 +37,7 @@ BOOST_AUTO_TEST_CASE(DecodeValueType)
 	gt::mutable_tree tr{ {0}, { gt::mutable_tree{ { 25 } } } };
 
 	UintStrVec var;
-	gt::decode(tr, var);
+	BOOST_TEST(!gt::decode(tr, var));
 
 	BOOST_REQUIRE(var.index() == 0);
 
@@ -47,7 +50,7 @@ BOOST_AUTO_TEST_CASE(DecodeSecondValueType)
 	gt::mutable_tree tr{ {1}, { gt::mutable_tree{ { 'a', 'b', 'c' } } } };
 
 	UintStrVec var;
-	gt::decode(tr, var);
+	BOOST_TEST(!gt::decode(tr, var));
 
 	BOOST_REQUIRE(var.index() == 1);
 
@@ -63,7 +66,7 @@ BOOST_AUTO_TEST_CASE(DecodeValuelessType)
 	}};
 
 	UintStrVec var;
-	gt::decode(tr, var);
+	BOOST_TEST(!gt::decode(tr, var));
 
 	BOOST_REQUIRE(var.index() == 2);
 
@@ -73,12 +76,22 @@ BOOST_AUTO_TEST_CASE(DecodeValuelessType)
 	BOOST_TEST(val == expect, tt::per_element());
 }
 
+BOOST_AUTO_TEST_CASE(FailToDecodeValue)
+{
+	gt::mutable_tree tr{ {0}, {
+		gt::mutable_tree{ { 0, 1, 2, 3, 4, 5, 6, 7, 8 } }
+	}};
+
+	UintStrVec var;
+	BOOST_TEST(gt::decode(tr, var));
+}
+
 BOOST_AUTO_TEST_CASE(EncodeFirstType)
 {
 	UintStrVec truth = 32LU, var;
 
 	gt::mutable_tree tr;
-	gt::encode(truth, tr);
+	BOOST_TEST(!gt::encode(truth, tr));
 	gt::decode(tr, var);
 
 	BOOST_REQUIRE(var.index() == 0);
@@ -92,7 +105,7 @@ BOOST_AUTO_TEST_CASE(EncodeSecondType)
 	UintStrVec truth = "hello", var;
 
 	gt::mutable_tree tr;
-	gt::encode(truth, tr);
+	BOOST_TEST(!gt::encode(truth, tr));
 	gt::decode(tr, var);
 
 	BOOST_REQUIRE(var.index() == 1);
@@ -107,7 +120,7 @@ BOOST_AUTO_TEST_CASE(EncodeThirdType)
 	UintStrVec truth = expect, var;
 
 	gt::mutable_tree tr;
-	gt::encode(truth, tr);
+	BOOST_TEST(!gt::encode(truth, tr));
 	gt::decode(tr, var);
 
 	BOOST_REQUIRE(var.index() == 2);

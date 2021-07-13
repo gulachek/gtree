@@ -7,7 +7,9 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/optional.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -17,12 +19,12 @@ namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(NoValue)
 {
-	BOOST_TEST(!gt::uses_value<std::optional<int>>::value);
+	BOOST_TEST(!gt::uses_value<std::optional<std::size_t>>::value);
 }
 
 BOOST_AUTO_TEST_CASE(UsesChildren)
 {
-	BOOST_TEST(gt::uses_children<std::optional<bool>>::value);
+	BOOST_TEST(gt::uses_children<std::optional<std::size_t>>::value);
 }
 
 BOOST_AUTO_TEST_CASE(DecodeNullopt)
@@ -30,7 +32,7 @@ BOOST_AUTO_TEST_CASE(DecodeNullopt)
 	gt::mutable_tree tr;
 
 	std::optional<std::size_t> n = 1;
-	gt::decode(tr, n);
+	BOOST_TEST(!gt::decode(tr, n));
 
 	BOOST_TEST(!n.has_value());
 }
@@ -40,7 +42,7 @@ BOOST_AUTO_TEST_CASE(EncodeNullopt)
 	std::optional<std::size_t> in, out = 3;
 
 	gt::mutable_tree tr;
-	gt::encode(in, tr);
+	BOOST_TEST(!gt::encode(in, tr));
 	gt::decode(tr, out);
 
 	BOOST_TEST(!out.has_value());
@@ -53,9 +55,19 @@ BOOST_AUTO_TEST_CASE(DecodeValue)
 	gt::mutable_tree tr{{}, { ntree } };
 
 	std::optional<std::size_t> n;
-	gt::decode(tr, n);
+	BOOST_TEST(!gt::decode(tr, n));
 
 	BOOST_TEST(*n == 10);
+}
+
+BOOST_AUTO_TEST_CASE(FailToDecodeValue)
+{
+	gt::mutable_tree ntree;
+	gt::encode(256LU, ntree);
+	gt::mutable_tree tr{{}, { ntree } };
+
+	std::optional<std::uint8_t> n;
+	BOOST_TEST(gt::decode(tr, n));
 }
 
 BOOST_AUTO_TEST_CASE(EncodeValue)
@@ -64,7 +76,7 @@ BOOST_AUTO_TEST_CASE(EncodeValue)
 
 	gt::mutable_tree tr;
 	gt::encode(in, tr);
-	gt::decode(tr, out);
+	BOOST_TEST(!gt::decode(tr, out));
 
 	BOOST_TEST(*in == *out);
 }

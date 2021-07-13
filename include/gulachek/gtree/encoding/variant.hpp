@@ -1,6 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_VARIANT_HPP
 #define GULACHEK_GTREE_ENCODING_VARIANT_HPP
 
+#include "gulachek/gtree/encoding/encoding.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/size.hpp>
@@ -26,12 +28,12 @@ namespace gulachek::gtree
 	{
 		typedef typename boost::mpl::vector<Ts...>::type sequence;
 
-		static std::size_t index(const std::variant<Ts...> &v)
+		static std::size_t index(std::variant<Ts...> &&v)
 		{ return v.index(); }
 
 		template <typename T>
-		static const T& get(const std::variant<Ts...> &v)
-		{ return std::get<T>(v); }
+		static T&& get(std::variant<Ts...> &&v)
+		{ return std::get<T>(std::forward<std::variant<Ts...>>(v)); }
 	};
 
 	template <
@@ -42,9 +44,9 @@ namespace gulachek::gtree
 			I >= boost::mpl::size<Sequence>::value,
 			void*> = nullptr
 			>
-	void __run_at_elem(std::size_t i, Function &&f)
+	error __run_at_elem(std::size_t i, Function &&f)
 	{
-		// don't worry, be happy
+		return "Variant index out of range";
 	}
 
 	template <
@@ -55,7 +57,7 @@ namespace gulachek::gtree
 			I < boost::mpl::size<Sequence>::value,
 			void*> = nullptr
 			>
-	void __run_at_elem(std::size_t i, Function &&f)
+	error __run_at_elem(std::size_t i, Function &&f)
 	{
 		if (i == I)
 		{
@@ -63,14 +65,14 @@ namespace gulachek::gtree
 				typename boost::mpl::at_c<Sequence, I>::type
 				> v;
 
-			std::invoke(
+			return std::invoke(
 					std::forward<Function>(f),
 					boost::get(v)
 					);
 		}
 		else
 		{
-			__run_at_elem<I+1, Sequence, Function>(
+			return __run_at_elem<I+1, Sequence, Function>(
 					i,
 					std::forward<Function>(f)
 					);
@@ -78,32 +80,32 @@ namespace gulachek::gtree
 	}
 
 	template <typename Sequence, typename Function>
-	void __run_at_elem(std::size_t i, Function &&f)
+	auto __run_at_elem(std::size_t i, Function &&f)
 	{
-		__run_at_elem<0, Sequence, Function>
+		return __run_at_elem<0, Sequence, Function>
 			(i, std::forward<Function>(f));
 	}
 
 	template <typename Variant, typename Tree>
 	struct __encode_functor
 	{
-		const Variant &val;
+		Variant &&val;
 		Tree &tr;
 
 		template <typename T>
-		void operator() (T)
+		error operator() (T)
 		{
-			auto &ref = variant_encoding<Variant>::
-				template get<T>(val);
+			auto &&ref = variant_encoding<Variant>::
+				template get<T>(std::forward<Variant>(val));
 
 			if constexpr (uses_value<T>::value)
 			{
 				tr.child_count(1);
-				encode(ref, tr.child(0));
+				return encode(std::forward<T>(ref), tr.child(0));
 			}
 			else
 			{
-				encode(ref, tr);
+				return encode(std::forward<T>(ref), tr);
 			}
 		}
 	};
@@ -114,38 +116,44 @@ namespace gulachek::gtree
 		typename Variant,
 		typename variant_encoding<Variant>::sequence* = nullptr
 			 >
-	void encode(
-			const Variant &val,
+	error encode(
+			Variant &&val,
 			Tree &tree
 			)
 	{
 		typedef typename variant_encoding<Variant>::sequence seq;
-		auto index = variant_encoding<Variant>::index(val);
 
+		// can I use a const lvalue to pass here?
+		auto index = variant_encoding<Variant>::index(std::forward<Variant>(val));
+
+		// assume integers can't fail encoding
 		encode(index, tree);
 
-		__encode_functor<Variant, Tree> ftor{val, tree};
-		__run_at_elem<seq>(index, ftor);
+		__encode_functor<Variant, Tree> ftor{std::forward<Variant>(val), tree};
+		return __run_at_elem<seq>(index, ftor);
 	}
 
 	template <typename Variant, typename Tree>
 	struct __decode_functor
 	{
-		const Tree &tr;
+		Tree &&tr;
 		Variant &val;
 
 		template <typename T>
-		void operator() (T)
+		error operator() (T)
 		{
 			T elem;
 
 			// No need for indirection if no value is in the way
+			error err;
 			if constexpr (uses_value<T>::value)
-				decode(tr.child(0), elem);
+				err = decode(std::move(tr.child(0)), elem);
 			else
-				decode(tr, elem);
+				err = decode(std::move(tr), elem);
 
+			if (err) return err;
 			val = std::move(elem);
+			return {};
 		}
 	};
 
@@ -154,17 +162,18 @@ namespace gulachek::gtree
 		typename Variant,
 		typename variant_encoding<Variant>::sequence* = nullptr
 		>
-	void decode(
-			const Tree &tree,
+	error decode(
+			Tree &&tree,
 			Variant &val
 			)
 	{
 		typedef typename variant_encoding<Variant>::sequence seq;
 		std::size_t index;
-		decode(tree, index);
+		if (auto err = decode(tree, index))
+			return err;
 
-		__decode_functor<Variant, Tree> ftor{tree, val};
-		__run_at_elem<seq>(index, ftor);
+		__decode_functor<Variant, Tree> ftor{std::forward<Tree>(tree), val};
+		return __run_at_elem<seq>(index, ftor);
 	}
 
 	template <typename T>

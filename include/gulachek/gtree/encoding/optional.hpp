@@ -1,6 +1,7 @@
 #ifndef GULACHEK_GTREE_ENCODING_OPTIONAL_HPP
 #define GULACHEK_GTREE_ENCODING_OPTIONAL_HPP
 
+#include "gulachek/gtree/encoding/encoding.hpp"
 #include <optional>
 
 namespace gulachek::gtree
@@ -12,32 +13,37 @@ namespace gulachek::gtree
 	struct uses_children<std::optional<T>> : std::true_type {};
 
 	template <typename Tree, typename T>
-	void encode(const std::optional<T> &val, Tree &tree)
+	error encode(std::optional<T> &&val, Tree &tree)
 	{
 		if (val)
 		{
 			tree.child_count(1);
-			encode(*val, tree.child(0));
+			return encode(std::forward<T>(*val), tree.child(0));
 		}
 		else
 		{
 			tree.child_count(0);
+			return {};
 		}
 	}
 
 	template <typename Tree, typename T>
-	void decode(const Tree &tree, std::optional<T> &val)
+	error decode(Tree &&tree, std::optional<T> &val)
 	{
 		if (tree.child_count())
 		{
 			T inner;
-			decode(tree.child(0), inner);
+			if (auto err = decode(std::move(tree.child(0)), inner))
+				return err;
+
 			val = std::move(inner);
 		}
 		else
 		{
 			val = std::nullopt;
 		}
+
+		return {};
 	}
 }
 

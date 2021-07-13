@@ -7,7 +7,7 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/signed.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -39,10 +39,10 @@ BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 
 	std::int8_t n = 0;
 
-	gt::decode(pos, n);
+	BOOST_TEST(!gt::decode(pos, n));
 	BOOST_TEST(n == 25);
 
-	gt::decode(neg, n);
+	BOOST_TEST(!gt::decode(neg, n));
 	BOOST_TEST(n == -25);
 }
 
@@ -54,10 +54,10 @@ BOOST_AUTO_TEST_CASE(DecodeTwoBytes)
 
 	std::int16_t n = 0;
 
-	gt::decode(pos, n);
+	BOOST_TEST(!gt::decode(pos, n));
 	BOOST_TEST(n == 1234);
 
-	gt::decode(neg, n);
+	BOOST_TEST(!gt::decode(neg, n));
 	BOOST_TEST(n == -1234);
 }
 
@@ -69,10 +69,10 @@ BOOST_AUTO_TEST_CASE(DecodeThreeBytes)
 
 	std::int32_t n = 0;
 
-	gt::decode(pos, n);
+	BOOST_TEST(!gt::decode(pos, n));
 	BOOST_TEST(n == 1000000);
 
-	gt::decode(neg, n);
+	BOOST_TEST(!gt::decode(neg, n));
 	BOOST_TEST(n == -1000000);
 }
 
@@ -88,11 +88,22 @@ BOOST_AUTO_TEST_CASE(DecodeMaxSize)
 
 	std::int64_t n = 0;
 
-	gt::decode(pos, n);
+	BOOST_TEST(!gt::decode(pos, n));
 	BOOST_TEST(n == 1);
 
-	gt::decode(neg, n);
+	BOOST_TEST(!gt::decode(neg, n));
 	BOOST_TEST(n == -1);
+}
+
+BOOST_AUTO_TEST_CASE(FailPastMaxSize)
+{
+	gt::mutable_tree pos{
+		{0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+	};
+
+	std::int64_t n = 0;
+
+	BOOST_TEST(gt::decode(pos, n));
 }
 
 BOOST_AUTO_TEST_CASE(EncodeSingleByte)
@@ -102,11 +113,11 @@ BOOST_AUTO_TEST_CASE(EncodeSingleByte)
 	gt::mutable_tree tr;
 
 	std::int8_t n = 25;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == pos);
 
 	n = -25;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == neg);
 }
 
@@ -118,11 +129,11 @@ BOOST_AUTO_TEST_CASE(EncodeTwoBytes)
 	gt::mutable_tree tr;
 
 	std::int16_t n = 1234;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == pos);
 
 	n = -1234;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == neg);
 }
 
@@ -134,11 +145,11 @@ BOOST_AUTO_TEST_CASE(EncodeThreeBytes)
 	gt::mutable_tree tr;
 
 	std::int32_t n = 1000000;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == pos);
 
 	n = -1000000;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == neg);
 }
 
@@ -154,10 +165,10 @@ BOOST_AUTO_TEST_CASE(EncodeMaxSize)
 	gt::mutable_tree tr;
 
 	std::int64_t n = 0x7fffffffffffffff;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == pos);
 
 	n = -0x7fffffffffffffff;
-	gt::encode(n, tr);
+	BOOST_TEST(!gt::encode(n, tr));
 	BOOST_CHECK(tr == neg);
 }

@@ -7,7 +7,7 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/empty.hpp"
 
 #include <vector>
 #include <cstdint>

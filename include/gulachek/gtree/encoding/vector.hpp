@@ -16,20 +16,25 @@ namespace gulachek::gtree
 	// Vectors parse children sequentially
 	template <typename MutableTree,
 					 typename T, typename Allocator>
-	void encode(
-			const std::vector<T, Allocator> &val,
+	error encode(
+			std::vector<T, Allocator> &&val,
 			MutableTree &tree
 			)
 	{
 		tree.child_count(val.size());
 
 		for (std::size_t i = 0; i < val.size(); i++)
-			encode(val[i], tree.child(i));
+		{
+			if (auto err = encode(std::move(val[i]), tree.child(i)))
+				return err;
+		}
+
+		return {};
 	}
 
 	template <typename Tree, typename T, typename Allocator>
-	void decode(
-			const Tree &tree,
+	error decode(
+			Tree &&tree,
 			std::vector<T, Allocator> &val
 			)
 	{
@@ -39,9 +44,13 @@ namespace gulachek::gtree
 		for (std::size_t i = 0; i < tree.child_count(); i++)
 		{
 			T elem;
-			decode(tree.child(i), elem);
+			if (auto err = decode(std::move(tree.child(i)), elem))
+				return err;
+
 			val.emplace_back(std::move(elem));
 		}
+
+		return {};
 	}
 }
 

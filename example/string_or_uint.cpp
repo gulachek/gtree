@@ -3,13 +3,16 @@
 #include <string>
 
 #include "gulachek/gtree.hpp"
+#include "gulachek/gtree/encoding/variant.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
 
 namespace gt = gulachek::gtree;
 
 int main()
 {
 	std::variant<std::string, unsigned int> val;
-	while (gt::tin >> val)
+	while (!gt::read(gt::tin, val))
 	{
 		if (auto pint = std::get_if<unsigned int>(&val))
 		{

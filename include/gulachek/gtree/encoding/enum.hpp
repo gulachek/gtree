@@ -24,14 +24,14 @@ namespace gulachek::gtree
 		typename T,
 		std::enable_if_t<std::is_enum_v<T>, void*> = nullptr
 			>
-	void encode(
-			const T &val,
+	error encode(
+			T &&val,
 			Tree &tree
 			)
 	{
-		auto impl = static_cast<std::underlying_type_t<T>>(val);
-
-		encode(impl, tree);
+		using under_type = std::underlying_type_t<T>;
+		auto &&impl = static_cast<under_type>(std::forward<T>(val));
+		return encode(std::forward<under_type>(impl), tree);
 	}
 
 	template <
@@ -39,14 +39,17 @@ namespace gulachek::gtree
 		typename T,
 		std::enable_if_t<std::is_enum_v<T>, void*> = nullptr
 			>
-	void decode(
-			const Tree &tree,
+	error decode(
+			Tree &&tree,
 			T &val
 			)
 	{
 		std::underlying_type_t<T> impl;
-		decode(tree, impl);
+		if (auto err = decode(std::forward<Tree>(tree), impl))
+			return err;
+
 		val = static_cast<T>(impl);
+		return {};
 	}
 }
 

@@ -1,7 +1,7 @@
 #ifndef GULACHEK_GTREE_ENCODING_ENCODING_HPP
 #define GULACHEK_GTREE_ENCODING_ENCODING_HPP
 
-#include <boost/mpl/set.hpp>
+#include "gulachek/gtree/error.hpp"
 
 namespace gulachek::gtree
 {
@@ -40,162 +40,36 @@ namespace gulachek::gtree
 															> {};
 
 	// Encode object into a tree
+	// Caller is responsible for making copy if value must be constant
 	// template <typename MutableTree, typename T>
-	// void encode(const T &val, MutableTree &tree);
+	// error encode(T &&val, MutableTree &tree);
 
 	// Decode object from a tree
+	// Caller is responsible for making copy if value must be constant
 	// template <typename Tree, typename T>
-	// void decode(const Tree &t, T &val);
+	// error decode(Tree &&t, T &val);
 	
 	template <typename Tree, typename T,
 		std::enable_if_t<
 			!is_sertreealizable<T>::value
 			, int> = 0
 			>
-	void decode(const Tree &, T &t)
+	error decode(Tree &&, T &t)
 	{
 		static_assert(
 				is_sertreealizable<T>::value
 				, "Type must support decoding"
 				);
+
+		return "Type must support decoding";
 	}
 
-	// Use this to encode your class/struct from raw trees
-	struct value_encoding {};
-	struct container_encoding {};
-	struct hybrid_encoding {};
-
-	using __manual_encodings = boost::mpl::set<
-		value_encoding,
-		container_encoding,
-		hybrid_encoding
-		>;
-
-	using __manual_uses_value = boost::mpl::set<
-		value_encoding,
-		hybrid_encoding
-		>;
-
-	using __manual_uses_children = boost::mpl::set<
-		container_encoding,
-		hybrid_encoding
-		>;
-
-	// Specify an encoding type that your class can convert
-	// to/from
-	template <typename MutableTree, typename T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	void encode(const T &val, MutableTree &tree)
+	template <typename Tree, typename T>
+	error encode(const T &val, Tree &tr)
 	{
-		typename T::gtree_encoding temp;
-		val.gtree_encode(temp);
-		encode(temp, tree);
+		T cpy{val};
+		return encode(std::move(cpy), tr);
 	}
-
-	template <typename MutableTree, typename T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	void encode(const T &val, MutableTree &tree)
-	{
-		val.gtree_encode(tree);
-	}
-
-	template <typename Tree, typename T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	void decode(const Tree &tree, T &val)
-	{
-		typename T::gtree_encoding temp;
-		decode(tree, temp);
-		val.gtree_decode(temp);
-	}
-
-	template <typename Tree, typename T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	void decode(const Tree &tree, T &val)
-	{
-		val.gtree_decode(tree);
-	}
-
-	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			> :
-		uses_value<typename T::gtree_encoding> {};
-
-	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			>
-	{
-		static constexpr bool value =
-			boost::mpl::has_key<__manual_uses_value,
-			typename T::gtree_encoding
-		>::value;
-	};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			> :
-		uses_children<typename T::gtree_encoding> {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			>
-	{
-		static constexpr bool value =
-			boost::mpl::has_key<__manual_uses_children,
-			typename T::gtree_encoding
-		>::value;
-	};
 }
 
 #endif

@@ -1,4 +1,8 @@
 #include "gulachek/gtree.hpp"
+#include "gulachek/gtree/encoding/fusion.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+
 #include <fstream>
 #include <iostream>
 
@@ -6,17 +10,17 @@
 
 namespace gt = gulachek::gtree;
 
-struct Foo
+struct foo
 {
 	std::size_t bar;
 	std::string baz;
 };
 
-BOOST_FUSION_ADAPT_STRUCT(Foo, bar, baz);
+BOOST_FUSION_ADAPT_STRUCT(foo, bar, baz);
 
-std::ostream& operator << (std::ostream& os, const Foo &foo)
+std::ostream& operator << (std::ostream& os, const foo &foo)
 {
-	return os << "Foo{" << foo.bar << ',' << foo.baz << '}';
+	return os << "foo{" << foo.bar << ',' << foo.baz << '}';
 }
 
 int main(int argc, char **argv)
@@ -34,16 +38,16 @@ int main(int argc, char **argv)
 		std::ofstream of{argv[2]};
 		gt::otreem tout{of};
 
-		Foo foo{654321, "goodbye earth"};
-		tout << foo;
+		foo foo{654321, "goodbye earth"};
+		gt::write(gt::tout, foo);
 	}
 	else
 	{
 		std::ifstream inf{argv[2]};
 		gt::itreem tin{inf};
 
-		Foo foo;
-		tin >> foo;
+		foo foo;
+		gt::read(gt::tin, foo);
 
 		std::cout << foo << std::endl;
 	}

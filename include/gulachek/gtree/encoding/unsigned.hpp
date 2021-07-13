@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <list>
+#include <type_traits>
 
 namespace gulachek::gtree
 {
@@ -12,23 +13,23 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_value<
 		T,
-		typename std::enable_if<std::is_unsigned_v<T>, void>::type
+		typename std::enable_if<std::is_unsigned_v<std::decay_t<T>>, void>::type
 	> : std::true_type {};
 
 	// Unsigned integers don't use children
 	template <typename T>
 	struct uses_children<
 		T,
-		typename std::enable_if<std::is_unsigned_v<T>, void>::type
+		typename std::enable_if<std::is_unsigned_v<std::decay_t<T>>, void>::type
 	> : std::false_type {};
 
 	// Unsigned Integers are in little endian format
 	template <
 		typename MutableTree, 
 		typename T,
-		std::enable_if_t<std::is_unsigned<T>::value, int> = 0
+		std::enable_if_t<std::is_unsigned<std::decay_t<T>>::value, int> = 0
 			>
-	void encode(const T &val, MutableTree &tree)
+	error encode(T &&val, MutableTree &tree)
 	{
 		auto n = val;
 		std::list<std::uint8_t> bytes;
@@ -43,15 +44,20 @@ namespace gulachek::gtree
 		}
 
 		tree.value(bytes.begin(), bytes.end());
+
+		return {};
 	}
 
 	template <
 		typename Tree, 
 		typename T,
-		std::enable_if_t<std::is_unsigned<T>::value, int> = 0
+		std::enable_if_t<std::is_unsigned<std::decay_t<T>>::value, int> = 0
 			>
-	void decode(const Tree &t, T &n)
+	error decode(Tree &&t, T &n)
 	{
+		if (t.value().size() > sizeof(std::decay_t<T>))
+			return "Integer too big";
+
 		n = 0;
 
 		auto tval = t.value();
@@ -61,6 +67,8 @@ namespace gulachek::gtree
 			T b = start[i];
 			n |= (b << 8*i);
 		}
+
+		return {};
 	}
 }
 

@@ -7,7 +7,12 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/fusion.hpp"
+#include "gulachek/gtree/encoding/variant.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/optional.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
+#include "gulachek/gtree/encoding/vector.hpp"
 
 #include <boost/fusion/adapted/adt/adapt_adt.hpp>
 #include <boost/fusion/include/adapt_adt.hpp>
@@ -51,7 +56,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 {
 	gt::mutable_tree expect{ { 25 } }, result;
 	fusion::vector<test_value> val{25};
-	gt::encode(val, result);
+	BOOST_TEST(!gt::encode(val, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -61,7 +66,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	gt::mutable_tree tr{ { 25 } };
 	fusion::vector<test_value> val;
 
-	gt::decode(tr, val);
+	BOOST_TEST(!gt::decode(tr, val));
 
 	auto n = fusion::at_c<0>(val);
 
@@ -123,7 +128,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	fusion::vector<test_value, test_container> pair;
-	gt::decode(tr, pair);
+	BOOST_TEST(!gt::decode(tr, pair));
 
 	BOOST_TEST(at_c<0>(pair) == 1);
 	BOOST_TEST(*(at_c<1>(pair)) == 2);
@@ -136,7 +141,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	}}, result;
 
 	fusion::vector<test_value, test_container> pair{1, 2};
-	gt::encode(pair, result);
+	BOOST_TEST(!gt::encode(pair, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -152,7 +157,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	fusion::vector<test_value, test_value> pair;
-	gt::decode(tr, pair);
+	BOOST_TEST(!gt::decode(tr, pair));
 
 	BOOST_TEST(at_c<0>(pair) == 1);
 	BOOST_TEST(at_c<1>(pair) == 2);
@@ -165,7 +170,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	}}, result;
 
 	fusion::vector<test_value, test_value> pair{1, 2};
-	gt::encode(pair, result);
+	BOOST_TEST(!gt::encode(pair, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -181,7 +186,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	fusion::vector<test_container, test_value> pair;
-	gt::decode(tr, pair);
+	BOOST_TEST(!gt::decode(tr, pair));
 
 	BOOST_TEST(*(at_c<0>(pair)) == 1);
 	BOOST_TEST(at_c<1>(pair) == 2);
@@ -194,7 +199,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	}}, result;
 
 	fusion::vector<test_container, test_value> pair{1, 2};
-	gt::encode(pair, result);
+	BOOST_TEST(!gt::encode(pair, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -212,7 +217,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	fusion::vector<test_general, test_value> pair;
-	gt::decode(tr, pair);
+	BOOST_TEST(!gt::decode(tr, pair));
 
 	auto n = std::get<std::uint32_t>(at_c<0>(pair));
 	BOOST_TEST(n == 2);
@@ -227,8 +232,8 @@ BOOST_AUTO_TEST_CASE(Encode)
 		}	}
 	}}, result;
 
-	fusion::vector<test_general, test_value> pair{2, 3};
-	gt::encode(pair, result);
+	fusion::vector<test_general, test_value> pair{2u, 3};
+	BOOST_TEST(!gt::encode(pair, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -249,7 +254,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	fusion::vector<test_general, test_general> pair;
-	gt::decode(tr, pair);
+	BOOST_TEST(!gt::decode(tr, pair));
 
 	auto m = std::get<std::uint32_t>(at_c<0>(pair));
 	auto n = std::get<std::uint32_t>(at_c<1>(pair));
@@ -268,8 +273,8 @@ BOOST_AUTO_TEST_CASE(Encode)
 		}	}
 	}}, result;
 
-	fusion::vector<test_general, test_general> pair{2, 3};
-	gt::encode(pair, result);
+	fusion::vector<test_general, test_general> pair{2u, 3u};
+	BOOST_TEST(!gt::encode(pair, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -305,7 +310,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	}}, result;
 
 	three_vals vals{1, 2, 3};
-	gt::encode(vals, result);
+	BOOST_TEST(!gt::encode(vals, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -319,7 +324,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	three_vals vals;
-	gt::decode(tr, vals);
+	BOOST_TEST(!gt::decode(tr, vals));
 
 	BOOST_CHECK(at_c<0>(vals) == 1);
 	BOOST_CHECK(at_c<1>(vals) == 2);
@@ -437,7 +442,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	gt::mutable_tree expect{ { 25 } }, result;
 	single val;
 	val.n(25);
-	gt::encode(val, result);
+	BOOST_TEST(!gt::encode(val, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -447,9 +452,17 @@ BOOST_AUTO_TEST_CASE(Decode)
 	gt::mutable_tree tr{ { 25 } };
 	single val;
 
-	gt::decode(tr, val);
+	BOOST_TEST(!gt::decode(tr, val));
 
 	BOOST_TEST(val.n() == 25);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeFails)
+{
+	gt::mutable_tree tr{ { 25, 2, 3, 4, 5 } };
+	single val;
+
+	BOOST_TEST(gt::decode(tr, val));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // SingleElement
@@ -465,10 +478,30 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	value_container vc;
-	gt::decode(tr, vc);
+	BOOST_TEST(!gt::decode(tr, vc));
 
 	BOOST_TEST(vc.value() == 1);
 	BOOST_TEST(vc.container()[0] == 2);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeValueFails)
+{
+	gt::mutable_tree tr{ { 1, 2, 3, 4, 5 }, {
+		gt::mutable_tree{ {2} }
+	}};
+
+	value_container vc;
+	BOOST_TEST(gt::decode(tr, vc));
+}
+
+BOOST_AUTO_TEST_CASE(DecodeContainerFails)
+{
+	gt::mutable_tree tr{ { 1 }, {
+		gt::mutable_tree{ {2, 3, 4, 5, 6} }
+	}};
+
+	value_container vc;
+	BOOST_TEST(gt::decode(tr, vc));
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
@@ -480,7 +513,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	value_container vc;
 	vc.value(1);
 	vc.container({2});
-	gt::encode(vc, result);
+	BOOST_TEST(!gt::encode(vc, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -496,10 +529,30 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	value_value vv;
-	gt::decode(tr, vv);
+	BOOST_TEST(!gt::decode(tr, vv));
 
 	BOOST_TEST(vv.first() == 1);
 	BOOST_TEST(vv.second() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeValueFails)
+{
+	gt::mutable_tree tr{ { 1, 2, 3, 4, 5 }, {
+		gt::mutable_tree{ {2} }
+	}};
+
+	value_value vv;
+	BOOST_TEST(gt::decode(tr, vv));
+}
+
+BOOST_AUTO_TEST_CASE(DecodeGeneralFails)
+{
+	gt::mutable_tree tr{ { 1 }, {
+		gt::mutable_tree{ {2, 3, 4, 5, 6} }
+	}};
+
+	value_value vv;
+	BOOST_TEST(gt::decode(tr, vv));
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
@@ -511,7 +564,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	value_value vv;
 	vv.first(1);
 	vv.second(2);
-	gt::encode(vv, result);
+	BOOST_TEST(!gt::encode(vv, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -527,10 +580,30 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	container_value cv;
-	gt::decode(tr, cv);
+	BOOST_TEST(!gt::decode(tr, cv));
 
 	BOOST_TEST(cv.container()[0] == 1);
 	BOOST_TEST(cv.value() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeContainerFails)
+{
+	gt::mutable_tree tr{ { 2 }, {
+		gt::mutable_tree{ {1, 2, 3, 4, 5 } }
+	}};
+
+	container_value cv;
+	BOOST_TEST(gt::decode(tr, cv));
+}
+
+BOOST_AUTO_TEST_CASE(DecodeValueFails)
+{
+	gt::mutable_tree tr{ { 2, 3, 4, 5, 6 }, {
+		gt::mutable_tree{ {1} }
+	}};
+
+	container_value cv;
+	BOOST_TEST(gt::decode(tr, cv));
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
@@ -542,7 +615,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	container_value cv;
 	cv.container({1});
 	cv.value(2);
-	gt::encode(cv, result);
+	BOOST_TEST(!gt::encode(cv, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -565,7 +638,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	vals.first(1);
 	vals.second(2);
 	vals.third(3);
-	gt::encode(vals, result);
+	BOOST_TEST(!gt::encode(vals, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -579,11 +652,23 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	triple vals;
-	gt::decode(tr, vals);
+	BOOST_TEST(!gt::decode(tr, vals));
 
 	BOOST_CHECK(vals.first() == 1);
 	BOOST_CHECK(vals.second() == 2);
 	BOOST_CHECK(vals.third() == 3);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeFails)
+{
+	gt::mutable_tree tr{ {
+		gt::mutable_tree{ { 1, 2, 3, 4, 5 } },
+		gt::mutable_tree{ { 2 } },
+		gt::mutable_tree{ { 3 } }
+	}};
+
+	triple vals;
+	BOOST_TEST(gt::decode(tr, vals));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ThreePlus

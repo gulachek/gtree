@@ -6,6 +6,8 @@
 #include "gulachek/gtree/itreem.hpp"
 #include "gulachek/gtree/otreem.hpp"
 #include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/write.hpp"
+#include "gulachek/gtree/read.hpp"
 
 #include <iostream>
 

@@ -1,6 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_FUSION_HPP
 #define GULACHEK_GTREE_ENCODING_FUSION_HPP
 
+#include "gulachek/gtree/encoding/encoding.hpp"
+
 #include <tuple>
 #include <type_traits>
 
@@ -83,72 +85,102 @@ namespace gulachek::gtree
 	};
 
 	template <typename MutableTree, typename Left, typename Right>
-	void __encode_pair(const Left &left, const Right &right,
+	error __encode_pair(Left &&left, Right &&right,
 			MutableTree &tree
 			)
 	{
 		if constexpr (is_pure_value<Left>::value)
 		{
-			encode(left, tree);
+			if (auto err = encode(std::forward<Left>(left), tree))
+				return err;
 
 			if constexpr (is_pure_container<Right>::value)
 			{
-				encode(right, tree);
+				if (auto err = encode(std::forward<Right>(right), tree))
+					return err;
 			}
 			else
 			{
 				tree.child_count(1);
-				encode(right, tree.child(0));
+				if (auto err = encode(std::forward<Right>(right), tree.child(0)))
+					return err;
 			}
 		}
 		else if constexpr (is_pure_value<Right>::value)
 		{
-			encode(right, tree);
+			if (auto err = encode(std::forward<Right>(right), tree))
+				return err;
 
 			if constexpr (is_pure_container<Left>::value)
 			{
-				encode(left, tree);
+				if (auto err = encode(std::forward<Left>(left), tree))
+					return err;
 			}
 			else
 			{
 				tree.child_count(1);
-				encode(left, tree.child(0));
+				if (auto err = encode(std::forward<Left>(left), tree.child(0)))
+					return err;
 			}
 		}
 		else
 		{
 			tree.child_count(2);
-			encode(left, tree.child(0));
-			encode(right, tree.child(1));
+			if (auto err = encode(std::forward<Left>(left), tree.child(0)))
+				return err;
+
+			if (auto err = encode(std::forward<Right>(right), tree.child(1)))
+				return err;
 		}
+
+		return {};
 	}
 
 	template <typename Tree, typename Left, typename Right>
-	void __decode_pair(const Tree &tree, Left &left, Right &right)
+	error __decode_pair(Tree &&tree, Left &left, Right &right)
 	{
 		if constexpr (is_pure_value<Left>::value)
 		{
-			decode(tree, left);
+			if (auto err = decode(std::forward<Tree>(tree), left))
+				return err;
 
 			if constexpr (is_pure_container<Right>::value)
-				decode(tree, right);
+			{
+				if (auto err = decode(std::forward<Tree>(tree), right))
+					return err;
+			}
 			else
-				decode(tree.child(0), right);
+			{
+				if (auto err = decode(tree.child(0), right))
+					return err;
+			}
 		}
 		else if constexpr (is_pure_value<Right>::value)
 		{
-			decode(tree, right);
+			if (auto err = decode(std::forward<Tree>(tree), right))
+				return err;
 
 			if constexpr (is_pure_container<Left>::value)
-				decode(tree, left);
+			{
+				if (auto err = decode(std::forward<Tree>(tree), left))
+					return err;
+			}
 			else
-				decode(tree.child(0), left);
+			{
+				if (auto err = decode(std::forward<Tree>(tree.child(0)), left))
+					return err;
+			}
 		}
 		else
 		{
-			decode(tree.child(0), left);
-			decode(tree.child(1), right);
+			if (auto err = decode(std::forward<Tree>(tree.child(0)), left))
+				return err;
+
+			if (auto err = decode(std::forward<Tree>(tree.child(1)), right))
+				return err;
 		}
+
+		return {};
 	}
 
 	template <
@@ -158,8 +190,10 @@ namespace gulachek::gtree
 		typename MutableTree,
 		std::enable_if_t<index == size, int> = 0
 	>
-	void __encode_seq(const SeqIt &it, MutableTree &tr)
-	{}
+	error __encode_seq(SeqIt &it, MutableTree &tr)
+	{
+		return {};
+	}
 
 	template <
 		std::size_t size,
@@ -168,12 +202,16 @@ namespace gulachek::gtree
 		typename MutableTree,
 		std::enable_if_t<index < size, int> = 0
 	>
-	void __encode_seq(const SeqIt &it, MutableTree &tr)
+	error __encode_seq(SeqIt &it, MutableTree &tr)
 	{
 		using namespace boost::fusion;
-		const typename result_of::value_of<SeqIt>::type &x = *it;
-		encode(x, tr.child(index));
-		__encode_seq<size, index+1>(next(it), tr);
+		using result_t = typename result_of::value_of<SeqIt>::type; 
+		result_t &&x = std::move(*it);
+
+		if (auto err = encode(std::forward<result_t>(x), tr.child(index)))
+			return err;
+
+		return __encode_seq<size, index+1>(next(it), tr);
 	}
 
 	template <
@@ -183,8 +221,10 @@ namespace gulachek::gtree
 		typename Tree,
 		std::enable_if_t<index == size, int> = 0
 	>
-	void __decode_seq(const Tree &tree, SeqIt &it)
-	{}
+	error __decode_seq(Tree &&tree, SeqIt &it)
+	{
+		return {};
+	}
 
 	template <
 		std::size_t size,
@@ -193,15 +233,17 @@ namespace gulachek::gtree
 		typename Tree,
 		std::enable_if_t<index < size, int> = 0
 	>
-	void __decode_seq(const Tree &tree, SeqIt &it)
+	error __decode_seq(Tree &&tree, SeqIt &it)
 	{
 		using namespace boost::fusion;
 		typename result_of::value_of<SeqIt>::type x{};
 
-		decode(tree.child(index), x);
+		if (auto err = decode(std::move(tree.child(index)), x))
+			return err;
+
 		*it = std::move(x);
 
-		__decode_seq<size, index+1>(tree, next(it));
+		return __decode_seq<size, index+1>(tree, next(it));
 	}
 
 	template <
@@ -209,45 +251,45 @@ namespace gulachek::gtree
 		typename Sequence,
 		__enable_if_seq_t<Sequence>* = nullptr
 						 >
-	void encode(const Sequence &seq, MutableTree &tree)
+	error encode(Sequence &&seq, MutableTree &tree)
 	{
 		using namespace boost::fusion;
 		constexpr auto n = result_of::size<Sequence>::value;
 
-		const auto first = begin(seq);
+		auto first = begin(seq);
 
 		if constexpr (n == 1)
 		{
 			using first_type =
 				typename result_of::begin<Sequence>::type;
 
-			const typename result_of::value_of<first_type>::type
-				&f = *first;
+			using result_t = typename result_of::value_of<first_type>::type;
+			result_t &&f = std::move(*first);
 
-			encode(f, tree);
+			return encode(std::forward<result_t>(f), tree);
 		}
 		else if constexpr (n == 2)
 		{
 			using first_type =
 				typename result_of::begin<Sequence>::type;
 
-			const typename result_of::value_of<first_type>::type
-				&f = *first;
+			using one_t = typename result_of::value_of<first_type>::type;
+			one_t &&f = std::move(*first);
 
 			using second_type =
 				typename result_of::next<first_type>::type;
 
 			auto second = next(first);
 
-			const typename result_of::value_of<second_type>::type
-				&s = *second;
+			using two_t = typename result_of::value_of<second_type>::type;
+			two_t &&s = std::move(*second);
 
-			__encode_pair(f, s, tree);
+			return __encode_pair(std::forward<one_t>(f), std::forward<two_t>(s), tree);
 		}
 		else
 		{
 			tree.child_count(n);
-			__encode_seq<n, 0>(first, tree);
+			return __encode_seq<n, 0>(first, tree);
 		}
 	}
 
@@ -256,7 +298,7 @@ namespace gulachek::gtree
 		typename Sequence,
 		__enable_if_seq_t<Sequence>* = nullptr
 						 >
-	void decode(const Tree &tree, Sequence &seq)
+	error decode(const Tree &tree, Sequence &seq)
 	{
 		using namespace boost::fusion;
 		constexpr auto n = result_of::size<Sequence>::value;
@@ -268,7 +310,9 @@ namespace gulachek::gtree
 		if constexpr (n == 1)
 		{
 			typename result_of::value_of<first_type>::type f{};
-			decode(tree, f);
+			if (auto err = decode(tree, f))
+				return err;
+
 			*first = std::move(f);
 		}
 		else if constexpr (n == 2)
@@ -281,15 +325,18 @@ namespace gulachek::gtree
 
 			typename result_of::value_of<second_type>::type s{};
 
-			__decode_pair(tree, f, s);
+			if (auto err = __decode_pair(tree, f, s))
+				return err;
 
 			*first = std::move(f);
 			*second = std::move(s);
 		}
 		else
 		{
-			__decode_seq<n, 0>(tree, first);
+			return __decode_seq<n, 0>(tree, first);
 		}
+
+		return {};
 	}
 }
 

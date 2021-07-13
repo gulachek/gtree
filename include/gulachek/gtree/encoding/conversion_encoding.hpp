@@ -1,5 +1,7 @@
-#ifndef GULACHEK_GTREE_ENCODING_CONVERT_HPP
-#define GULACHEK_GTREE_ENCODING_CONVERT_HPP
+#ifndef GULACHEK_GTREE_ENCODING_CONVERSION_ENCODING_HPP
+#define GULACHEK_GTREE_ENCODING_CONVERSION_ENCODING_HPP
+
+#include "gulachek/gtree/encoding/encoding.hpp"
 
 namespace gulachek::gtree
 {
@@ -8,10 +10,8 @@ namespace gulachek::gtree
 	 * to another type.
 	 * 
 	 * using source = YOUR SOURCE TYPE (like int);
-	 * const source& encode(const T &val);
-	 * const T& decode(source &&src);
-	 *
-	 * the const ref return values can also be plain values
+	 * error encode(T &&val, source &ref);
+	 * error decode(source &&ref, T &val);
 	 *
 	 */
 	template <typename T, typename Enable = void>
@@ -35,11 +35,14 @@ namespace gulachek::gtree
 		typename T,
 		typename convert_encoding<T>::source* = nullptr
 						 >
-	void decode(const Tree &tr, T &val)
+	error decode(Tree &&tr, T &val)
 	{
 		typename convert_encoding<T>::source src;
-		decode(tr, src);
-		val = convert_encoding<T>::decode(std::move(src));
+
+		if (auto err = decode(tr, src))
+			return err;
+
+		return convert_encoding<T>::decode(std::move(src), val);
 	}
 
 	template <
@@ -47,47 +50,15 @@ namespace gulachek::gtree
 		typename MutableTree,
 		typename convert_encoding<T>::source* = nullptr
 						 >
-	void encode(const T &val, MutableTree &tr)
+	error encode(T &&val, MutableTree &tr)
 	{
-		const typename convert_encoding<T>::source &src =
-			convert_encoding<T>::encode(val);
+		typename convert_encoding<T>::source src;
 
-		encode(src, tr);
+		if (auto err = convert_encoding<T>::encode(std::forward<T>(val), src))
+			return err;
+
+		return encode(std::move(src), tr);
 	}
-
-	template <typename T>
-	struct convert_encoding<std::shared_ptr<T>>
-	{
-		using source = T;
-		using ptr = std::shared_ptr<T>;
-
-		static const T& encode(const ptr &p)
-		{
-			return *p;
-		}
-
-		static ptr decode(T &&src)
-		{
-			return std::make_shared<T>(std::forward<T>(src));
-		}
-	};
-
-	template <typename T>
-	struct convert_encoding<std::unique_ptr<T>>
-	{
-		using source = T;
-		using ptr = std::unique_ptr<T>;
-
-		static const T& encode(const ptr &p)
-		{
-			return *p;
-		}
-
-		static ptr decode(T &&src)
-		{
-			return std::make_unique<T>(std::forward<T>(src));
-		}
-	};
 }
 
 #endif

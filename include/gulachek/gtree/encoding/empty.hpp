@@ -28,9 +28,10 @@ namespace gulachek::gtree
 		typename MutableTree,
 		typename empty_encoding<T>::type* = nullptr
 		>
-	void encode(const T &val, MutableTree &tree)
+	error encode(T &&val, MutableTree &tree)
 	{
 		tree = MutableTree{};
+		return {};
 	}
 
 	template <
@@ -38,7 +39,10 @@ namespace gulachek::gtree
 		typename T,
 		typename empty_encoding<T>::type* = nullptr
 		>
-	void decode(const Tree &tr, T &val) { }
+	error decode(Tree &&tr, T &val)
+	{
+		return {};
+	}
 }
 
 #endif

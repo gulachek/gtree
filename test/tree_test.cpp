@@ -27,42 +27,43 @@ BOOST_AUTO_TEST_CASE(CopyConstructible)
 
 BOOST_AUTO_TEST_SUITE(IsTreeTrait)
 
-struct BasicTree {
+struct basic_tree {
 	const gt::block value() const;
 	std::size_t child_count() const;
-	BasicTree child(std::size_t) const;
+	basic_tree child(std::size_t) const;
 };
 
-struct MutableValue : BasicTree
+struct mutable_value : basic_tree
 {
-	const gt::block value() const { return BasicTree::value(); }
+	const gt::block value() const { return basic_tree::value(); }
+
 	template <typename T>
 	void value(T begin, T end);
 };
 
 BOOST_AUTO_TEST_CASE(NoConflictWithMutableValue)
 {
-	BOOST_TEST(gt::is_tree<MutableValue>::value);
+	BOOST_TEST(gt::is_tree<mutable_value>::value);
 }
 
-struct MutableChildCount : BasicTree
+struct mutable_child_count : basic_tree
 {
 	std::size_t child_count() const
-	{ return BasicTree::child_count(); }
+	{ return basic_tree::child_count(); }
 
 	void child_count(std::size_t i);
 };
 
 BOOST_AUTO_TEST_CASE(NoConflictWithMutableChildCount)
 {
-	BOOST_TEST(gt::is_tree<MutableChildCount>::value);
+	BOOST_TEST(gt::is_tree<mutable_child_count>::value);
 }
 
-struct MutableChild : BasicTree
+struct MutableChild : basic_tree
 {
-	BasicTree child(std::size_t i) const;
+	basic_tree child(std::size_t i) const;
 
-	BasicTree& child(std::size_t i);
+	basic_tree& child(std::size_t i);
 };
 
 BOOST_AUTO_TEST_CASE(NoConflictWithMutableChild)
@@ -70,23 +71,23 @@ BOOST_AUTO_TEST_CASE(NoConflictWithMutableChild)
 	BOOST_TEST(gt::is_tree<MutableChild>::value);
 }
 
-BOOST_AUTO_TEST_CASE(BasicTreeIsTree)
+BOOST_AUTO_TEST_CASE(basic_treeIsTree)
 {
-	BOOST_TEST(gt::is_tree<BasicTree>::value);
+	BOOST_TEST(gt::is_tree<basic_tree>::value);
 }
 
 BOOST_AUTO_TEST_CASE(NoDefaultConstructorIsNotTree)
 {
-	struct NoDefaultConstructor : BasicTree {
-		NoDefaultConstructor(int i);
+	struct no_default_constructor : basic_tree {
+		no_default_constructor(int i);
 	};
 
-	BOOST_TEST(!gt::is_tree<NoDefaultConstructor>::value);
+	BOOST_TEST(!gt::is_tree<no_default_constructor>::value);
 }
 
 BOOST_AUTO_TEST_CASE(NoMoveConstructorIsNotTree)
 {
-	struct NoMoveConstructor : BasicTree {
+	struct NoMoveConstructor : basic_tree {
 		NoMoveConstructor() = default;
 		NoMoveConstructor(NoMoveConstructor &&) = delete;
 	};
@@ -97,7 +98,7 @@ BOOST_AUTO_TEST_CASE(NoMoveConstructorIsNotTree)
 struct TreeNoValue
 {
 	std::size_t child_count() const;
-	BasicTree child(std::size_t) const;
+	basic_tree child(std::size_t) const;
 };
 
 BOOST_AUTO_TEST_CASE(NoValueIsNotTree)
@@ -158,7 +159,7 @@ BOOST_AUTO_TEST_CASE(PrivateValueIsNotTree)
 struct TreeNoChildCount
 {
 	const gt::block value() const;
-	BasicTree child(std::size_t i) const;
+	basic_tree child(std::size_t i) const;
 };
 
 BOOST_AUTO_TEST_CASE(NoChildCountIsNotTree)
@@ -261,7 +262,7 @@ BOOST_AUTO_TEST_CASE(ChildIsOtherTreeIsTree)
 {
 	struct ChildIsOtherTree : TreeNoChild
 	{
-		BasicTree child(std::size_t) const;
+		basic_tree child(std::size_t) const;
 	};
 
 	BOOST_TEST(gt::is_tree<ChildIsOtherTree>::value);
@@ -271,7 +272,7 @@ BOOST_AUTO_TEST_CASE(ChildIsCrefOtherIsTree)
 {
 	struct ChildIsCrefOther : TreeNoChild
 	{
-		const BasicTree& child(std::size_t) const;
+		const basic_tree& child(std::size_t) const;
 	};
 
 	BOOST_TEST(gt::is_tree<ChildIsCrefOther>::value);
@@ -281,7 +282,7 @@ BOOST_AUTO_TEST_CASE(ChildIsRefOtherIsNotTree)
 {
 	struct ChildIsRefOther : TreeNoChild
 	{
-		BasicTree& child(std::size_t) const;
+		basic_tree& child(std::size_t) const;
 	};
 
 	BOOST_TEST(!gt::is_tree<ChildIsRefOther>::value);

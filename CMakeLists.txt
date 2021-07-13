@@ -8,7 +8,6 @@ find_package(Boost REQUIRED
 	unit_test_framework
 	)
 
-set(platform "gulachek_gtree_asio_platform")
 set(core "gulachek_gtree")
 
 if (WIN32)
@@ -25,6 +24,7 @@ add_library(${core}
 	src/block.cpp
 	src/gtree.cpp
 	src/twos_complement.cpp
+	src/error.cpp
 	)
 
 target_include_directories(${core} PUBLIC

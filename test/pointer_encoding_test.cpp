@@ -7,7 +7,9 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/shared_pointer.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/vector.hpp"
 
 #include <memory>
 #include <cstdint>
@@ -49,9 +51,19 @@ BOOST_AUTO_TEST_CASE(DecodeValueType)
 
 	gt::mutable_tree tr;
 	gt::encode(n, tr);
-	gt::decode(tr, ptr);
+	BOOST_TEST(!gt::decode(tr, ptr));
 
 	BOOST_TEST(*ptr == 12);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeFails)
+{
+	std::size_t n = ~0LU;
+	std::shared_ptr<std::uint16_t> ptr;
+
+	gt::mutable_tree tr;
+	gt::encode(n, tr);
+	BOOST_TEST(gt::decode(tr, ptr));
 }
 
 BOOST_AUTO_TEST_CASE(EncodeValueType)
@@ -60,7 +72,7 @@ BOOST_AUTO_TEST_CASE(EncodeValueType)
 	std::uint16_t n = 0;
 
 	gt::mutable_tree tr;
-	gt::encode(ptr, tr);
+	BOOST_TEST(!gt::encode(ptr, tr));
 	gt::decode(tr, n);
 
 	BOOST_TEST(n == 12);

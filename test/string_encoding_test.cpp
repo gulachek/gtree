@@ -7,7 +7,7 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(DecodeBinaryString)
 	gt::mutable_tree tr{ { 'a', 'b', 'c', 255 } };
 
 	std::string str;
-	gt::decode(tr, str);
+	BOOST_TEST(!gt::decode(tr, str));
 
 	BOOST_TEST(str == "abc\xff");
 }
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(EncodeBinaryStrings)
 	std::string truth = "\xab\xff\x29\xf3hello world";
 
 	gt::mutable_tree tr;
-	gt::encode(truth, tr);
+	BOOST_TEST(!gt::encode(truth, tr));
 
 	std::string str;
 	gt::decode(tr, str);

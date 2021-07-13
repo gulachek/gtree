@@ -7,7 +7,9 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/class.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
+#include "gulachek/gtree/encoding/vector.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -18,71 +20,97 @@ namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_SUITE(Unsigned)
 
-struct Foo
+struct foo
 {
 	using gtree_encoding = unsigned int;
 
 	gtree_encoding n;
 
-	void gtree_encode(unsigned int &n) const
+	gt::error gtree_encode(unsigned int &n)
 	{
+		if (this->n == 42)
+			return "42";
+
 		n = this->n;
+		return {};
 	}
 
-	void gtree_decode(unsigned int n)
+	gt::error gtree_decode(unsigned int n)
 	{
+		if (n == 42)
+			return "42";
+
 		this->n = n;
+		return {};
 	}
 };
 
 BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesValue)
 {
-	struct Container {
+	struct container {
 		using gtree_encoding = std::vector<std::size_t>;
 		std::vector<std::size_t> v;
 	};
 
-	struct Value {
+	struct value {
 		using gtree_encoding = std::size_t;
 		std::size_t n;
 	};
 
-	BOOST_TEST(gt::uses_value<Value>::value);
-	BOOST_TEST(!gt::uses_value<Container>::value);
+	BOOST_TEST(gt::uses_value<value>::value);
+	BOOST_TEST(!gt::uses_value<container>::value);
 }
 
 BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesChildren)
 {
-	struct Container {
+	struct container {
 		using gtree_encoding = std::vector<std::size_t>;
 	};
 
-	struct Value {
+	struct value {
 		using gtree_encoding = std::size_t;
 	};
 
-	BOOST_TEST(!gt::uses_children<Value>::value);
-	BOOST_TEST(gt::uses_children<Container>::value);
+	BOOST_TEST(!gt::uses_children<value>::value);
+	BOOST_TEST(gt::uses_children<container>::value);
 }
 
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr{ {10} };
 
-	Foo foo;
-	gt::decode(tr, foo);
+	foo foo;
 
+	BOOST_TEST(!gt::decode(tr, foo));
 	BOOST_TEST(foo.n == 10);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeCanError)
+{
+	gt::mutable_tree tr{ {42} };
+
+	foo foo;
+
+	BOOST_TEST(gt::decode(tr, foo));
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
 	gt::mutable_tree expect{ {10} }, result;
 
-	Foo foo{10};
-	gt::encode(foo, result);
+	foo foo{10};
 
+	BOOST_TEST(!gt::encode(foo, result));
 	BOOST_CHECK(result == expect);
+}
+
+BOOST_AUTO_TEST_CASE(EncodeCanError)
+{
+	gt::mutable_tree result;
+
+	foo foo{42};
+
+	BOOST_TEST(gt::encode(foo, result));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Unsigned
@@ -97,17 +125,20 @@ class val
 		using gtree_encoding = gt::value_encoding;
 
 		template <typename MutableTree>
-		void gtree_encode(MutableTree &tr) const
+		gt::error gtree_encode(MutableTree &tr)
 		{
-			gt::encode((std::uint64_t)_n, tr);
+			return gt::encode((std::uint64_t)_n, tr);
 		}
 
 		template <typename Tree>
-		void gtree_decode(const Tree &tr)
+		gt::error gtree_decode(Tree &&tr)
 		{
 			std::uint16_t n;
-			gt::decode(tr, n);
+			if (auto err = gt::decode(std::forward<Tree>(tr), n))
+				return err;
+
 			_n = n;
+			return {};
 		}
 
 		int n() const { return _n; }
@@ -131,7 +162,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 	gt::mutable_tree expect{ {10} }, result;
 
 	val v{10};
-	gt::encode(v, result);
+	BOOST_TEST(!gt::encode(v, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -141,7 +172,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	gt::mutable_tree tr{ {10} };
 
 	val v;
-	gt::decode(tr, v);
+	BOOST_TEST(!gt::decode(tr, v));
 
 	BOOST_TEST(v.n() == 10);
 }
@@ -158,15 +189,15 @@ class cont
 		using gtree_encoding = gt::container_encoding;
 
 		template <typename MutableTree>
-		void gtree_encode(MutableTree &tr) const
+		gt::error gtree_encode(MutableTree &tr)
 		{
-			gt::encode(_v, tr);
+			return gt::encode(_v, tr);
 		}
 
 		template <typename Tree>
-		void gtree_decode(const Tree &tr)
+		gt::error gtree_decode(Tree &&tr)
 		{
-			gt::decode(tr, _v);
+			return gt::decode(std::forward<Tree>(tr), _v);
 		}
 
 		std::vector<std::uint16_t> v() const { return _v; }
@@ -195,7 +226,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 
 	std::vector<std::uint16_t> v = {1, 2, 3};
 	cont c{v};
-	gt::encode(c, result);
+	BOOST_TEST(!gt::encode(c, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -209,7 +240,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	cont c;
-	gt::decode(tr, c);
+	BOOST_TEST(!gt::decode(tr, c));
 
 	std::vector<std::uint16_t> expect = {1, 2, 3};
 	BOOST_TEST(c.v() == expect, tt::per_element());
@@ -230,17 +261,27 @@ class hybrid
 		using gtree_encoding = gt::hybrid_encoding;
 
 		template <typename MutableTree>
-		void gtree_encode(MutableTree &tr) const
+		gt::error gtree_encode(MutableTree &tr) const
 		{
-			gt::encode(_n, tr);
-			gt::encode(_v, tr);
+			if (auto err = gt::encode(_n, tr))
+				return err;
+
+			if (auto err = gt::encode(_v, tr))
+				return err;
+
+			return {};
 		}
 
 		template <typename Tree>
-		void gtree_decode(const Tree &tr)
+		gt::error gtree_decode(Tree &&tr)
 		{
-			gt::decode(tr, _n);
-			gt::decode(tr, _v);
+			if (auto err = gt::decode(std::forward<Tree>(tr), _n))
+				return err;
+
+			if (auto err = gt::decode(std::forward<Tree>(tr), _v))
+				return err;
+
+			return {};
 		}
 
 		std::uint16_t n() const { return _n; }
@@ -271,7 +312,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 
 	std::vector<std::uint16_t> v = {2, 3, 4};
 	hybrid h{1, v};
-	gt::encode(h, result);
+	BOOST_TEST(!gt::encode(h, result));
 
 	BOOST_CHECK(result == expect);
 }
@@ -285,7 +326,7 @@ BOOST_AUTO_TEST_CASE(Decode)
 	}};
 
 	hybrid h;
-	gt::decode(tr, h);
+	BOOST_TEST(!gt::decode(tr, h));
 
 	std::vector<std::uint16_t> expect = {2, 3, 4};
 	BOOST_TEST(h.n() == 1);

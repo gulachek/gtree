@@ -7,7 +7,7 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
 
 #include <vector>
 #include <cstdint>
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 	gt::mutable_tree in{ {25} };
 
 	std::uint8_t n = 0;
-	gt::decode(in, n);
+	BOOST_TEST(!gt::decode(in, n));
 
 	BOOST_TEST(n == 25);
 }
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 BOOST_AUTO_TEST_CASE(EncodeSingleByte)
 {
 	gt::mutable_tree tr;
-	gt::encode((std::uint8_t)25U, tr);
+	BOOST_TEST(!gt::encode((std::uint8_t)25U, tr));
 
 	std::size_t n = 0;
 	gt::decode(tr, n);
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(DecodeMultiByte)
 	gt::mutable_tree in{ {0, 0, 3} };
 
 	std::size_t n = 0;
-	gt::decode(in, n);
+	BOOST_TEST(!gt::decode(in, n));
 
 	BOOST_TEST(n == (3 << 16));
 }
@@ -68,10 +68,19 @@ BOOST_AUTO_TEST_CASE(EncodeMultiByte)
 	auto truth = 547025489LU;
 
 	gt::mutable_tree tr;
-	gt::encode(truth, tr);
+	BOOST_TEST(!gt::encode(truth, tr));
 
 	std::size_t n = 0;
 	gt::decode(tr, n);
 
 	BOOST_TEST(n == truth);
 }
+
+BOOST_AUTO_TEST_CASE(DecodeTooLargeFails)
+{
+	gt::mutable_tree in{ {0, 1, 2, 3, 4} };
+
+	std::uint32_t n = 0;
+	BOOST_TEST(gt::decode(in, n));
+}
+

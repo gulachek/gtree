@@ -21,7 +21,7 @@ namespace gulachek::gtree
 		> : std::true_type {};
 
 	template <typename Tree, typename MutableTree>
-	void copy_tree(const Tree &src, MutableTree &dest)
+	void copy_tree(Tree &&src, MutableTree &dest)
 	{
 		auto val = src.value();
 		dest.value(val.data(), val.data() + val.size());
@@ -40,12 +40,13 @@ namespace gulachek::gtree
 		typename MutableTree,
 		std::enable_if_t<is_tree<T>::value, int> = 0
 			>
-	void encode(
-			const T &src,
+	error encode(
+			T &&src,
 			MutableTree &dest
 			)
 	{
-		copy_tree(src, dest);
+		copy_tree(std::forward<T>(src), dest);
+		return {};
 	}
 
 	template <
@@ -53,12 +54,13 @@ namespace gulachek::gtree
 	 	typename T,
 		std::enable_if_t<is_mutable_tree<T>::value, int> = 0
 			>
-	void decode(
-			const Tree &src,
+	error decode(
+			Tree &&src,
 			T &dest
 			)
 	{
-		copy_tree(src, dest);
+		copy_tree(std::forward<Tree>(src), dest);
+		return {};
 	}
 }
 

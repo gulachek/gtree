@@ -16,10 +16,8 @@
 #include "gulachek/gtree/encoding/optional.hpp"
 #include "gulachek/gtree/encoding/fusion.hpp"
 #include "gulachek/gtree/encoding/map.hpp"
-#include "gulachek/gtree/encoding/polymorphic_variant.hpp"
 #include "gulachek/gtree/encoding/set.hpp"
 #include "gulachek/gtree/encoding/conversion_encoding.hpp"
-#include "gulachek/gtree/encoding/dictionary.hpp"
 
 #include <type_traits>
 #include <string>
@@ -95,39 +93,6 @@ namespace gulachek::gtree
 	 *
 	 */
 
-}
-
-template <
-	typename Itreem,
-	typename T,
-	std::enable_if_t<
-		gulachek::gtree::is_itreem<Itreem>::value,
-		int
-		> = 0
-	>
-Itreem& operator >> (Itreem& it, T &t)
-{
-	typename Itreem::tree_type tree;
-	if (it.read(&tree))
-		gulachek::gtree::decode(tree, t);
-
-	return it;
-}
-
-template <
-	typename Otreem,
-	typename T,
-	std::enable_if_t<
-		gulachek::gtree::is_otreem<Otreem>::value,
-		int
-		> = 0
-	>
-Otreem& operator << (Otreem& ot, const T &val)
-{
-	gulachek::gtree::mutable_tree tree;
-	gulachek::gtree::encode(val, tree);
-	ot.write(tree);
-	return ot;
 }
 
 #endif
