@@ -5,68 +5,112 @@
 
 namespace gulachek::gtree
 {
-	template <typename Tree, typename T, typename U>
-	void decode(const Tree &tree, std::pair<T, U> &pair)
+	template <typename K, typename V>
+	struct encoding<std::pair<K,V>>
 	{
-		if constexpr (is_pure_value<T>::value)
-		{
-			decode(tree, pair.first);
-			if constexpr (is_pure_container<U>::value)
-				decode(tree, pair.second);
-			else
-				decode(tree.child(0), pair.second);
-		}
-		else if constexpr (is_pure_value<U>::value)
-		{
-			decode(tree, pair.second);
-			if constexpr (is_pure_container<T>::value)
-				decode(tree, pair.first);
-			else
-				decode(tree.child(0), pair.first);
-		}
-		else
-		{
-			decode(tree.child(0), pair.first);
-			decode(tree.child(1), pair.second);
-		}
-	}
+		using type = std::pair<K,V>;
 
-	template <typename MutableTree, typename T, typename U>
-	void encode(const std::pair<T, U> &pair, MutableTree &tree)
-	{
-		if constexpr (is_pure_value<T>::value)
+		static constexpr bool uses_children = true;
+		static constexpr bool uses_value = !(
+				is_pure_value<K>::value || is_pure_value<V>::value);
+
+		template <typename Tree>
+		static error decode(Tree &&tree, type &pair)
 		{
-			encode(pair.first, tree);
-			if constexpr (is_pure_container<U>::value)
+			if constexpr (is_pure_value<K>::value)
 			{
-				encode(pair.second, tree);
+				if (auto err = gtree::decode(std::forward<Tree>(tree), pair.first))
+					return err;
+
+				if constexpr (is_pure_container<V>::value)
+				{
+					if (auto err = gtree::decode(std::forward<Tree>(tree), pair.second))
+						return err;
+				}
+				else
+				{
+					if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), pair.second))
+						return err;
+				}
+			}
+			else if constexpr (is_pure_value<V>::value)
+			{
+				if (auto err = gtree::decode(std::forward<Tree>(tree), pair.second))
+					return err;
+
+				if constexpr (is_pure_container<K>::value)
+				{
+					if (auto err = gtree::decode(std::forward<Tree>(tree), pair.first))
+						return err;
+				}
+				else
+				{
+					if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), pair.first))
+						return err;
+				}
 			}
 			else
 			{
-				tree.child_count(1);
-				encode(pair.second, tree.child(0));
+				if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), pair.first))
+					return err;
+
+				if (auto err = gtree::decode(std::forward<Tree>(tree).child(1), pair.second))
+					return err;
 			}
+
+			return {};
 		}
-		else if constexpr (is_pure_value<U>::value)
+
+		template <typename Pair, typename MutableTree>
+		static error encode(Pair &&pair, MutableTree &tree)
 		{
-			encode(pair.second, tree);
-			if constexpr (is_pure_container<T>::value)
+			if constexpr (is_pure_value<K>::value)
 			{
-				encode(pair.first, tree);
+				if (auto err = gtree::encode(std::forward<Pair>(pair).first, tree))
+					return err;
+
+				if constexpr (is_pure_container<V>::value)
+				{
+					if (auto err = gtree::encode(std::forward<Pair>(pair).second, tree))
+						return err;
+				}
+				else
+				{
+					tree.child_count(1);
+					if (auto err = gtree::encode(std::forward<Pair>(pair).second, tree.child(0)))
+						return err;
+				}
+			}
+			else if constexpr (is_pure_value<V>::value)
+			{
+				if (auto err = gtree::encode(std::forward<Pair>(pair).second, tree))
+					return err;
+
+				if constexpr (is_pure_container<K>::value)
+				{
+					if (auto err = gtree::encode(std::forward<Pair>(pair).first, tree))
+						return err;
+				}
+				else
+				{
+					tree.child_count(1);
+					if (auto err = gtree::encode(std::forward<Pair>(pair).first, tree.child(0)))
+						return err;
+				}
 			}
 			else
 			{
-				tree.child_count(1);
-				encode(pair.first, tree.child(0));
+				tree.child_count(2);
+				if (auto err = gtree::encode(std::forward<Pair>(pair).first, tree.child(0)))
+					return err;
+
+				if (auto err = gtree::encode(std::forward<Pair>(pair).second, tree.child(1)))
+					return err;
 			}
+
+			return {};
 		}
-		else
-		{
-			tree.child_count(2);
-			encode(pair.first, tree.child(0));
-			encode(pair.second, tree.child(1));
-		}
-	}
+	};
 }
 
 #endif

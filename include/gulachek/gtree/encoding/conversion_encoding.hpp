@@ -18,47 +18,38 @@ namespace gulachek::gtree
 	struct convert_encoding {};
 
 	template <typename T>
-	struct uses_value<
-		T,
+	struct encoding<T,
 		enable_t<typename convert_encoding<T>::source>
-			> : uses_value<typename convert_encoding<T>::source> {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		enable_t<typename convert_encoding<T>::source>
-			> : uses_children<
-			typename convert_encoding<T>::source> {};
-
-	template <
-		typename Tree,
-		typename T,
-		typename convert_encoding<T>::source* = nullptr
-						 >
-	error decode(Tree &&tr, T &val)
+			>
 	{
-		typename convert_encoding<T>::source src;
+		using type = T;
+		using source_type = typename convert_encoding<T>::source;
 
-		if (auto err = decode(tr, src))
-			return err;
+		static constexpr bool uses_value = gtree::uses_value<source_type>::value;
+		static constexpr bool uses_children = gtree::uses_children<source_type>::value;
 
-		return convert_encoding<T>::decode(std::move(src), val);
-	}
+		template <typename Tree>
+		static error decode(Tree &&tr, type &val)
+		{
+			source_type src;
 
-	template <
-		typename T,
-		typename MutableTree,
-		typename convert_encoding<T>::source* = nullptr
-						 >
-	error encode(T &&val, MutableTree &tr)
-	{
-		typename convert_encoding<T>::source src;
+			if (auto err = gtree::decode(std::forward<Tree>(tr), src))
+				return err;
 
-		if (auto err = convert_encoding<T>::encode(std::forward<T>(val), src))
-			return err;
+			return convert_encoding<T>::decode(std::move(src), val);
+		}
 
-		return encode(std::move(src), tr);
-	}
+		template <typename ForwardRef, typename MutableTree>
+		static error encode(ForwardRef &&val, MutableTree &tr)
+		{
+			source_type src;
+
+			if (auto err = convert_encoding<T>::encode(std::forward<ForwardRef>(val), src))
+				return err;
+
+			return encode(std::move(src), tr);
+		}
+	};
 }
 
 #endif

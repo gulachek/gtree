@@ -29,126 +29,60 @@ namespace gulachek::gtree
 		hybrid_encoding
 		>;
 
-	// Specify an encoding type that your class can convert
-	// to/from
-	template <typename MutableTree, typename T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	error encode(T &&val, MutableTree &tree)
-	{
-		typename T::gtree_encoding temp;
-
-		if (auto err = val.gtree_encode(temp))
-			return err;
-
-		return encode(std::move(temp), tree);
-	}
-
-	template <typename MutableTree, typename T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	error encode(T &&val, MutableTree &tree)
-	{
-		return val.gtree_encode(tree);
-	}
-
-	template <typename Tree, typename T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	error decode(Tree &&tree, T &val)
-	{
-		typename T::gtree_encoding temp;
-
-		if (auto err = decode(std::forward<Tree>(tree), temp))
-			return err;
-
-		return val.gtree_decode(std::move(temp));
-	}
-
-	template <typename Tree, typename T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void*> = nullptr
-			>
-	error decode(Tree &&tree, T &val)
-	{
-		return val.gtree_decode(std::forward<Tree>(tree));
-	}
-
 	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			> :
-		uses_value<typename T::gtree_encoding> {};
-
-	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			>
+	struct encoding<T,
+		std::enable_if_t<!boost::mpl::has_key<__manual_encodings, typename T::gtree_encoding>::value, void>>
 	{
-		static constexpr bool value =
-			boost::mpl::has_key<__manual_uses_value,
-			typename T::gtree_encoding
-		>::value;
+		using type = T;
+		using src_t = typename type::gtree_encoding;
+
+		template <typename MutableTree, typename ForwardRef>
+		static error encode(ForwardRef &&val, MutableTree &tree)
+		{
+			src_t temp;
+
+			if (auto err = std::forward<ForwardRef>(val).gtree_encode(temp))
+				return err;
+
+			return gtree::encode(std::move(temp), tree);
+		}
+
+		template <typename Tree>
+		static error decode(Tree &&tree, type &val)
+		{
+			src_t temp;
+
+			if (auto err = gtree::decode(std::forward<Tree>(tree), temp))
+				return err;
+
+			return val.gtree_decode(std::move(temp));
+		}
+
+		static constexpr bool uses_value = gtree::uses_value<src_t>::value;
+		static constexpr bool uses_children = gtree::uses_children<src_t>::value;
 	};
 
 	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<
-			!boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			> :
-		uses_children<typename T::gtree_encoding> {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<
-			boost::mpl::has_key<
-				__manual_encodings,
-				typename T::gtree_encoding
-			>::value,
-			void>
-			>
+	struct encoding<T,
+		std::enable_if_t<boost::mpl::has_key<__manual_encodings, typename T::gtree_encoding>::value, void>>
 	{
-		static constexpr bool value =
-			boost::mpl::has_key<__manual_uses_children,
-			typename T::gtree_encoding
-		>::value;
+		using type = T;
+		using archetype = typename type::gtree_encoding;
+
+		template <typename MutableTree, typename ForwardRef>
+		static error encode(ForwardRef &&val, MutableTree &tree)
+		{
+			return std::forward<ForwardRef>(val).gtree_encode(tree);
+		}
+
+		template <typename Tree>
+		static error decode(Tree &&tree, type &val)
+		{
+			return val.gtree_decode(std::forward<Tree>(tree));
+		}
+
+		static constexpr bool uses_value = boost::mpl::has_key<__manual_uses_value, archetype>::value;
+		static constexpr bool uses_children = boost::mpl::has_key<__manual_uses_children, archetype>::value;
 	};
 }
 

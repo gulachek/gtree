@@ -4,34 +4,38 @@
 #include "gulachek/gtree/encoding/encoding.hpp"
 
 #include <string>
+#include <type_traits>
 
 namespace gulachek::gtree
 {
 	template <>
-	struct uses_value<std::decay_t<std::string>> : std::true_type {};
-
-	template <>
-	struct uses_children<std::decay_t<std::string>> : std::false_type {};
-
-	// Strings are simply strings of bytes
-	// Not generalized to basic_string because of encoding issues
-	template <typename MutableTree>
-	error encode(std::string &&val, MutableTree &tree)
+	struct encoding<std::string>
 	{
-		tree.value(val.begin(), val.end());
-		return {};
-	}
+		using type = std::string;
 
-	template <typename Tree>
-	error decode(Tree &&tree, std::string &val)
-	{
-		auto tval = tree.value();
-		auto start = tval.data();
+		static constexpr bool uses_value = true;
+		static constexpr bool uses_children = false;
 
-		val = std::string{start, start + tval.size()};
+		// Strings are simply strings of bytes
+		// Not generalized to basic_string because of encoding issues
+		template <typename String, typename MutableTree>
+		static error encode(String &&val, MutableTree &tree)
+		{
+			tree.value(val.begin(), val.end());
+			return {};
+		}
 
-		return {};
-	}
+		template <typename Tree>
+		static error decode(Tree &&tree, std::string &val)
+		{
+			auto tval = tree.value();
+			auto start = tval.data();
+
+			val = std::string{start, start + tval.size()};
+
+			return {};
+		}
+	};
 }
 
 #endif

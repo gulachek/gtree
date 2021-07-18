@@ -1,23 +1,6 @@
 #ifndef GULACHEK_GTREE_ENCODING_HPP
 #define GULACHEK_GTREE_ENCODING_HPP
 
-#include "gulachek/gtree/is_itreem.hpp"
-#include "gulachek/gtree/is_otreem.hpp"
-#include "gulachek/gtree/mutable_tree.hpp"
-#include "gulachek/gtree/encoding/encoding.hpp"
-#include "gulachek/gtree/encoding/tree.hpp"
-#include "gulachek/gtree/encoding/empty.hpp"
-#include "gulachek/gtree/encoding/string.hpp"
-#include "gulachek/gtree/encoding/unsigned.hpp"
-#include "gulachek/gtree/encoding/signed.hpp"
-#include "gulachek/gtree/encoding/enum.hpp"
-#include "gulachek/gtree/encoding/vector.hpp"
-#include "gulachek/gtree/encoding/variant.hpp"
-#include "gulachek/gtree/encoding/optional.hpp"
-#include "gulachek/gtree/encoding/fusion.hpp"
-#include "gulachek/gtree/encoding/map.hpp"
-#include "gulachek/gtree/encoding/set.hpp"
-#include "gulachek/gtree/encoding/conversion_encoding.hpp"
 
 #include <type_traits>
 #include <string>

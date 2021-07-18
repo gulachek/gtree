@@ -9,33 +9,47 @@
 namespace gulachek::gtree
 {
 	template <typename K, typename V, typename C, typename A>
-	struct uses_value<std::map<K,V,C,A>> : std::false_type {};
-
-	template <typename K, typename V, typename C, typename A>
-	struct uses_children<std::map<K,V,C,A>> : std::true_type {};
-
-	template <typename MutableTree, typename K, typename V, typename C, typename A>
-	void encode(const std::map<K,V,C,A> &val, MutableTree &tree)
+	struct encoding<std::map<K,V,C,A>>
 	{
-		tree.child_count(val.size());
+		using type = std::map<K,V,C,A>;
 
-		std::size_t i = 0;
-		for (const std::pair<K,V> &kv : val)
-			encode(kv, tree.child(i++));
-	}
+		static constexpr bool uses_value = false;
+		static constexpr bool uses_children = true;
 
-	template <typename Tree, typename K, typename V, typename C, typename A>
-	void decode(const Tree &tree, std::map<K, V, C, A> &val)
-	{
-		val.clear();
-
-		for (std::size_t i = 0; i < tree.child_count(); i++)
+		template <typename Map, typename MutableTree>
+		static error encode(Map &&val, MutableTree &tree)
 		{
-			std::pair<K, V> kv;
-			decode(tree.child(i), kv);
-			val.emplace(std::move(kv));
+			tree.child_count(val.size());
+
+			std::size_t i = 0;
+			for (auto &&kv : std::forward<Map>(val))
+			{
+				if (auto err =
+						gtree::encode(std::forward<std::pair<K,V>>(kv), tree.child(i++)))
+					return err;
+			}
+
+			return {};
 		}
-	}
+
+		template <typename Tree>
+		static error decode(Tree &tree, type &val)
+		{
+			val.clear();
+
+			for (std::size_t i = 0; i < tree.child_count(); i++)
+			{
+				std::pair<K, V> kv;
+
+				if (auto err = gtree::decode(std::forward<Tree>(tree).child(i), kv))
+					return err;
+
+				val.emplace(std::move(kv));
+			}
+
+			return {};
+		}
+	};
 }
 
 #endif

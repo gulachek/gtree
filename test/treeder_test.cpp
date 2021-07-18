@@ -7,7 +7,8 @@ namespace tt = boost::test_tools;
 namespace bd = boost::unit_test::data;
 
 #include "gulachek/gtree/itreem.hpp"
-#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
 #include <list>
 #include <vector>
 #include <type_traits>

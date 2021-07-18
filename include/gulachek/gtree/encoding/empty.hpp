@@ -11,38 +11,25 @@ namespace gulachek::gtree
 	template <typename T, typename Enable = void>
 	struct empty_encoding {};
 
-	template <typename T>
-	struct uses_value<
-		T,
-		enable_t<typename empty_encoding<T>::type>
-	> : std::false_type {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		enable_t<typename empty_encoding<T>::type>
-	> : std::false_type {};
-
-	template <
-		typename T,
-		typename MutableTree,
-		typename empty_encoding<T>::type* = nullptr
-		>
-	error encode(T &&val, MutableTree &tree)
+	template <typename U>
+	struct encoding<U, enable_t<typename empty_encoding<U>::type>>
 	{
-		tree = MutableTree{};
-		return {};
-	}
+		static constexpr bool uses_value = false;
+		static constexpr bool uses_children = false;
 
-	template <
-		typename Tree,
-		typename T,
-		typename empty_encoding<T>::type* = nullptr
-		>
-	error decode(Tree &&tr, T &val)
-	{
-		return {};
-	}
+		template <typename T, typename MutableTree>
+		static error encode(T &&val, MutableTree &tree)
+		{
+			tree = MutableTree{};
+			return {};
+		}
+
+		template <typename Tree, typename T>
+		static error decode(Tree &&tr, T &val)
+		{
+			return {};
+		}
+	};
 }
 
 #endif

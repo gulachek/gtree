@@ -8,60 +8,48 @@
 
 namespace gulachek::gtree
 {
-	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<is_tree<T>::value, void>
-		> : std::true_type {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<is_tree<T>::value, void>
-		> : std::true_type {};
-
-	template <typename Tree, typename MutableTree>
-	void copy_tree(Tree &&src, MutableTree &dest)
+	template <typename U>
+	struct encoding<U, std::enable_if_t<is_tree<U>::value, void>>
 	{
-		auto val = src.value();
-		dest.value(val.data(), val.data() + val.size());
+		static constexpr bool uses_value = true;
+		static constexpr bool uses_children = true;
 
-		auto n = src.child_count();
-		dest.child_count(n);
+		// optimize this later to check to see if trees are
+		// same type
+		template <typename T, typename MutableTree>
+		static error encode(
+				T &&src,
+				MutableTree &dest
+				)
+		{
+			copy_tree(std::forward<T>(src), dest);
+			return {};
+		}
 
-		for (std::size_t i = 0; i < n; i++)
-			copy_tree(src.child(i), dest.child(i));
-	}
+		template <typename Tree, typename T>
+		static error decode(
+				Tree &&src,
+				T &dest
+				)
+		{
+			copy_tree(std::forward<Tree>(src), dest);
+			return {};
+		}
 
-	// optimize this later to check to see if trees are
-	// same type
-	template <
-		typename T,
-		typename MutableTree,
-		std::enable_if_t<is_tree<T>::value, int> = 0
-			>
-	error encode(
-			T &&src,
-			MutableTree &dest
-			)
-	{
-		copy_tree(std::forward<T>(src), dest);
-		return {};
-	}
+		private:
+			template <typename Tree, typename MutableTree>
+			static void copy_tree(Tree &&src, MutableTree &dest)
+			{
+				auto val = src.value();
+				dest.value(val.data(), val.data() + val.size());
 
-	template <
-		typename Tree,
-	 	typename T,
-		std::enable_if_t<is_mutable_tree<T>::value, int> = 0
-			>
-	error decode(
-			Tree &&src,
-			T &dest
-			)
-	{
-		copy_tree(std::forward<Tree>(src), dest);
-		return {};
-	}
+				auto n = src.child_count();
+				dest.child_count(n);
+
+				for (std::size_t i = 0; i < n; i++)
+					copy_tree(src.child(i), dest.child(i));
+			}
+	};
 }
 
 #endif

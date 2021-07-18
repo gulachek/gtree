@@ -1,48 +1,40 @@
 #ifndef GULACHEK_GTREE_ENCODING_SHARED_POINTER_HPP
 #define GULACHEK_GTREE_ENCODING_SHARED_POINTER_HPP
 
-#include "gulachek/gtree/encoding/conversion_encoding.hpp"
+#include "gulachek/gtree/encoding/encoding.hpp"
 #include <memory>
 
 namespace gulachek::gtree
 {
 	template <typename T>
-	struct convert_encoding<std::shared_ptr<T>>
+	struct encoding<std::shared_ptr<T>>
 	{
-		using source = T;
-		using ptr = std::shared_ptr<source>;
+		using type = std::shared_ptr<T>;
+		using value_type = T;
 
-		static error encode(ptr &&p, source &ref)
+		static constexpr bool uses_value = gtree::uses_value<value_type>::value;
+		static constexpr bool uses_children = gtree::uses_children<value_type>::value;
+
+		template <typename Tree>
+		static error decode(Tree &&tr, type &val)
 		{
-			ref = std::move(*p);
+			value_type src;
+
+			if (auto err = gtree::decode(std::forward<Tree>(tr), src))
+				return err;
+
+			val = std::make_shared<value_type>(std::move(src));
 			return {};
 		}
 
-		static error decode(source &&ref, ptr &p)
+		template <typename Ptr, typename MutableTree>
+		static error encode(Ptr &&val, MutableTree &tr)
 		{
-			p = std::make_shared<source>(std::forward<source>(ref));
-			return {};
+			// use lvalue ref because this might be a shared value
+			return gtree::encode(*val, tr);
 		}
 	};
 
-	/*
-	template <typename T>
-	struct convert_encoding<std::unique_ptr<T>>
-	{
-		using source = T;
-		using ptr = std::unique_ptr<T>;
-
-		static const T& encode(const ptr &p)
-		{
-			return *p;
-		}
-
-		static ptr decode(T &&src)
-		{
-			return std::make_unique<T>(std::forward<T>(src));
-		}
-	};
-	*/
 }
 
 #endif

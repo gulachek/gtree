@@ -29,7 +29,7 @@ namespace gulachek::gtree
 
 				std::size_t total_size = 0, first_child = 1;
 				std::size_t i = 0, size, child_count;
-				while (_next_node(nums, &size, &child_count))
+				while (next_node(nums, &size, &child_count))
 				{
 					if (i >= node_count)
 						throw std::runtime_error{"node_block: expected fewer nodes"};
@@ -118,7 +118,7 @@ namespace gulachek::gtree
 			std::shared_ptr<tree_base> _tb;
 
 			template <typename NumIter>
-			bool _next_node(
+			bool next_node(
 					NumIter &nums,
 					std::size_t *size,
 					std::size_t *child_count

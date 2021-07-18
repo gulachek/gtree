@@ -7,51 +7,64 @@
 
 namespace gulachek::gtree
 {
-	template <typename T>
-	struct uses_value<std::vector<T>> : std::false_type {};
-
-	template <typename T>
-	struct uses_children<std::vector<T>> : std::true_type {};
-
-	// Vectors parse children sequentially
-	template <typename MutableTree,
-					 typename T, typename Allocator>
-	error encode(
-			std::vector<T, Allocator> &&val,
-			MutableTree &tree
-			)
+	template <typename T, typename Allocator>
+	struct encoding<std::vector<T, Allocator>>
 	{
-		tree.child_count(val.size());
+		using type = std::vector<T, Allocator>;
 
-		for (std::size_t i = 0; i < val.size(); i++)
+		static constexpr bool uses_value = false;
+		static constexpr bool uses_children = true;
+
+		// Vectors parse children sequentially
+		template <typename Vec, typename MutableTree>
+		static error encode(
+				Vec &&val,
+				MutableTree &tree
+				)
 		{
-			if (auto err = encode(std::move(val[i]), tree.child(i)))
-				return err;
+			tree.child_count(val.size());
+
+			for (std::size_t i = 0; i < val.size(); i++)
+			{
+				if (auto err = gtree::encode(at(std::forward<Vec>(val), i), tree.child(i)))
+					return err;
+			}
+
+			return {};
 		}
 
-		return {};
-	}
-
-	template <typename Tree, typename T, typename Allocator>
-	error decode(
-			Tree &&tree,
-			std::vector<T, Allocator> &val
-			)
-	{
-		val.clear();
-		val.reserve(tree.child_count());
-
-		for (std::size_t i = 0; i < tree.child_count(); i++)
+		template <typename Tree>
+		static error decode(
+				Tree &&tree,
+				type &val
+				)
 		{
-			T elem;
-			if (auto err = decode(std::move(tree.child(i)), elem))
-				return err;
+			val.clear();
+			val.reserve(tree.child_count());
 
-			val.emplace_back(std::move(elem));
+			for (std::size_t i = 0; i < tree.child_count(); i++)
+			{
+				T elem;
+				if (auto err = gtree::decode(std::move(tree.child(i)), elem))
+					return err;
+
+				val.emplace_back(std::move(elem));
+			}
+
+			return {};
 		}
 
-		return {};
-	}
+		private:
+			static auto at(type &&vec, std::size_t i)
+			{
+				return std::move(vec[i]);
+			}
+
+			static auto at(const type &vec, std::size_t i)
+			{
+				return vec[i];
+			}
+	};
 }
 
 #endif

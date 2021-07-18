@@ -8,33 +8,45 @@
 namespace gulachek::gtree
 {
 	template <typename T>
-	struct uses_value<std::set<T>> : std::false_type {};
-
-	template <typename T>
-	struct uses_children<std::set<T>> : std::true_type {};
-
-	template <typename MutableTree, typename T>
-	void encode(const std::set<T> &set, MutableTree &tree)
+	struct encoding<std::set<T>>
 	{
-		tree.child_count(set.size());
+		using type = std::set<T>;
 
-		std::size_t i = 0;
-		for (const T& elem : set)
-			encode(elem, tree.child(i++));
-	}
+		static constexpr bool uses_value = false;
+		static constexpr bool uses_children = true;
 
-	template <typename T, typename Tree>
-	void decode(const Tree &tree, std::set<T> &set)
-	{
-		set.clear();
-
-		for (std::size_t i = 0; i < tree.child_count(); i++)
+		template <typename Set, typename MutableTree>
+		static error encode(Set &&set, MutableTree &tree)
 		{
-			T elem;
-			decode(tree.child(i), elem);
-			set.emplace(std::move(elem));
+			tree.child_count(set.size());
+
+			std::size_t i = 0;
+			for (auto &&elem : std::forward<Set>(set))
+			{
+				if (auto err = gtree::encode(elem, tree.child(i++)))
+					return err;
+			}
+
+			return {};
 		}
-	}
+
+		template <typename Tree>
+		static error decode(Tree &&tree, type &set)
+		{
+			set.clear();
+
+			for (std::size_t i = 0; i < tree.child_count(); i++)
+			{
+				T elem;
+				if (auto err = gtree::decode(std::forward<Tree>(tree).child(i), elem))
+					return err;
+
+				set.emplace(std::move(elem));
+			}
+
+			return {};
+		}
+	};
 }
 
 #endif

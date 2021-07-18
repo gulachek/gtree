@@ -5,6 +5,8 @@ project(gtree)
 find_package(Boost REQUIRED
 	system
 	iostreams
+	timer
+	json
 	unit_test_framework
 	)
 
@@ -85,6 +87,9 @@ target_link_libraries(write_nums ${core})
 
 add_executable(custom_class example/custom_class.cpp)
 target_link_libraries(custom_class ${core})
+
+add_executable(vs_json test/vs_json.cpp)
+target_link_libraries(vs_json ${core} Boost::timer Boost::json)
 
 #############################################
 # Installation

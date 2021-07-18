@@ -8,49 +8,41 @@
 namespace gulachek::gtree
 {
 	template <typename T>
-	struct uses_value<
-		T,
-		std::enable_if_t<std::is_enum_v<T>, void>
-		> : uses_value<std::underlying_type_t<T>> {};
-
-	template <typename T>
-	struct uses_children<
-		T,
-		std::enable_if_t<std::is_enum_v<T>, void>
-		> : uses_children<std::underlying_type_t<T>> {};
-
-	template <
-		typename Tree,
-		typename T,
-		std::enable_if_t<std::is_enum_v<T>, void*> = nullptr
-			>
-	error encode(
-			T &&val,
-			Tree &tree
-			)
+	struct encoding<T, std::enable_if_t<std::is_enum_v<T>, void>>
 	{
-		using under_type = std::underlying_type_t<T>;
-		auto &&impl = static_cast<under_type>(std::forward<T>(val));
-		return encode(std::forward<under_type>(impl), tree);
-	}
+		using type = T;
+		using underlying_t = std::underlying_type_t<type>;
 
-	template <
-		typename Tree,
-		typename T,
-		std::enable_if_t<std::is_enum_v<T>, void*> = nullptr
-			>
-	error decode(
-			Tree &&tree,
-			T &val
-			)
-	{
-		std::underlying_type_t<T> impl;
-		if (auto err = decode(std::forward<Tree>(tree), impl))
-			return err;
+		static constexpr bool uses_value = gtree::uses_value<underlying_t>::value;
+		static constexpr bool uses_children = gtree::uses_children<underlying_t>::value;
 
-		val = static_cast<T>(impl);
-		return {};
-	}
+		template <
+			typename U,
+			typename Tree
+				>
+		static error encode(
+				U &&val,
+				Tree &tree
+				)
+		{
+			auto &&impl = static_cast<underlying_t>(std::forward<T>(val));
+			return gtree::encode(std::forward<underlying_t>(impl), tree);
+		}
+
+		template <typename Tree>
+		static error decode(
+				Tree &&tree,
+				type &val
+				)
+		{
+			underlying_t impl;
+			if (auto err = gtree::decode(std::forward<Tree>(tree), impl))
+				return err;
+
+			val = static_cast<T>(impl);
+			return {};
+		}
+	};
 }
 
 #endif
