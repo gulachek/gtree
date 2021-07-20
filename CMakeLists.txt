@@ -36,7 +36,7 @@ target_include_directories(${core} PUBLIC
 	)
 
 target_compile_features(${core}
-	PUBLIC cxx_std_17
+	PUBLIC cxx_std_20
 	)
 
 target_link_libraries(${core}

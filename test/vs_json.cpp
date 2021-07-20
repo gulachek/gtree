@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 		boost::timer::cpu_timer t;
 		t.start(); t.stop();
 
-		for (volatile std::size_t i = 0; i < niter; i++)
+		for (std::size_t i = 0; i < niter; ++i)
 		{
 			std::istringstream ss{json};
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 		boost::timer::cpu_timer t;
 		t.start(); t.stop();
 
-		for (volatile std::size_t i = 0; i < niter; i++)
+		for (std::size_t i = 0; i < niter; ++i)
 		{
 			std::istringstream ss{gtree};
 			gt::itreem reader{ss};
