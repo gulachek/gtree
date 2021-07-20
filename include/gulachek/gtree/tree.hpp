@@ -116,11 +116,13 @@ namespace gulachek::gtree
 				;
 	};
 
-	template <typename TLeft, typename TRight,
-		std::enable_if_t<std::conjunction_v<
-			is_tree<TLeft>,
-			is_tree<TRight>
-			>, int> = 0>
+	template <typename T>
+	constexpr bool is_tree_v = is_tree<T>::value;
+
+	template <typename T>
+	concept Tree = is_tree_v<T>;
+
+	template <Tree TLeft, Tree TRight>
 	bool operator == (const TLeft &left, const TRight &right)
 	{
 		auto lcnt = left.child_count(), rcnt = right.child_count();
@@ -138,11 +140,7 @@ namespace gulachek::gtree
 		return true;
 	}
 
-	template <typename TLeft, typename TRight,
-		std::enable_if_t<std::conjunction_v<
-			is_tree<TLeft>,
-			is_tree<TRight>
-			>, int> = 0>
+	template <Tree TLeft, Tree TRight>
 	bool operator != (const TLeft &left, const TRight &right)
 	{
 		return !(left == right);
