@@ -182,12 +182,13 @@ namespace gulachek::gtree
 			{
 				using namespace boost::fusion;
 				using result_t = typename result_of::value_of<SeqIt>::type; 
-				result_t &&x = std::move(*it);
+				result_t x = *it;
 
-				if (auto err = gtree::encode(std::forward<result_t>(x), tr.child(index)))
+				if (auto err = gtree::encode(x, tr.child(index)))
 					return err;
 
-				return __encode_seq<size, index+1>(next(it), tr);
+				return __encode_seq<size, index+1>(
+						next(std::forward<SeqIt>(it)), tr);
 			}
 
 			template <
@@ -214,7 +215,8 @@ namespace gulachek::gtree
 				using namespace boost::fusion;
 				typename result_of::value_of<SeqIt>::type x{};
 
-				if (auto err = gtree::decode(std::move(tree.child(index)), x))
+				if (auto err = gtree::decode(
+							std::forward<Tree>(tree).child(index), x))
 					return err;
 
 				*it = std::move(x);
@@ -236,23 +238,19 @@ namespace gulachek::gtree
 
 				auto first = begin(seq);
 
+				using first_type =
+					typename result_of::begin<seq_t>::type;
+
 				if constexpr (n == 1)
 				{
-					using first_type =
-						typename result_of::begin<seq_t>::type;
-
 					using result_t = typename result_of::value_of<first_type>::type;
-					result_t &&f = std::move(*first);
-
-					return gtree::encode(std::forward<result_t>(f), tree);
+					result_t f = *first;
+					return gtree::encode(f, tree);
 				}
 				else if constexpr (n == 2)
 				{
-					using first_type =
-						typename result_of::begin<seq_t>::type;
-
 					using one_t = typename result_of::value_of<first_type>::type;
-					one_t &&f = std::move(*first);
+					one_t f = *first;
 
 					using second_type =
 						typename result_of::next<first_type>::type;
@@ -260,9 +258,9 @@ namespace gulachek::gtree
 					auto second = next(first);
 
 					using two_t = typename result_of::value_of<second_type>::type;
-					two_t &&s = std::move(*second);
+					two_t s = *second;
 
-					return __encode_pair(std::forward<one_t>(f), std::forward<two_t>(s), tree);
+					return __encode_pair(f, s, tree);
 				}
 				else
 				{

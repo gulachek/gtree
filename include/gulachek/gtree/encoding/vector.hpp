@@ -45,7 +45,7 @@ namespace gulachek::gtree
 			for (std::size_t i = 0; i < tree.child_count(); i++)
 			{
 				T elem;
-				if (auto err = gtree::decode(std::move(tree.child(i)), elem))
+				if (auto err = gtree::decode(std::forward<Tree>(tree).child(i), elem))
 					return err;
 
 				val.emplace_back(std::move(elem));

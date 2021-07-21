@@ -21,7 +21,7 @@ namespace gulachek::gtree
 			if (val)
 			{
 				tree.child_count(1);
-				return gtree::encode(std::forward<value_type>(*val), tree.child(0));
+				return gtree::encode(*std::forward<Opt>(val), tree.child(0));
 			}
 			else
 			{

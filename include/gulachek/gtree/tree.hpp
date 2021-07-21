@@ -5,6 +5,7 @@
 #include "gulachek/gtree/tree_base.hpp"
 #include <memory>
 #include <type_traits>
+#include <concepts>
 
 namespace gulachek::gtree
 {
@@ -120,7 +121,28 @@ namespace gulachek::gtree
 	constexpr bool is_tree_v = is_tree<T>::value;
 
 	template <typename T>
-	concept Tree = is_tree_v<T>;
+	struct tree_implements_child_
+	{
+		constexpr static bool value = false;
+	};
+
+	template <typename T, typename Self>
+	concept TreeImplementsChild_ =
+		std::is_same_v<T, Self> || tree_implements_child_<T>::value;
+
+	template <typename T>
+	concept Tree = requires(const T t, std::size_t i)
+	{
+		{ t.value() } -> std::same_as<const block>;
+		{ t.child_count() } -> std::same_as<std::size_t>;
+		{ t.child(i) } -> TreeImplementsChild_<T>;
+	};
+
+	template <Tree T>
+	struct tree_implements_child_<T>
+	{
+		constexpr static bool value = true;
+	};
 
 	template <Tree TLeft, Tree TRight>
 	bool operator == (const TLeft &left, const TRight &right)

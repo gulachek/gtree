@@ -25,8 +25,8 @@ namespace gulachek::gtree
 				Tree &tree
 				)
 		{
-			auto &&impl = static_cast<underlying_t>(std::forward<T>(val));
-			return gtree::encode(std::forward<underlying_t>(impl), tree);
+			auto impl = static_cast<underlying_t>(val);
+			return gtree::encode(impl, tree);
 		}
 
 		template <typename Tree>

@@ -2,6 +2,8 @@
 #define GULACHEK_GTREE_ENCODING_ENCODING_HPP
 
 #include "gulachek/gtree/error.hpp"
+#include "gulachek/gtree/tree.hpp"
+#include <type_traits>
 #include <utility>
 
 namespace gulachek::gtree
@@ -36,11 +38,14 @@ namespace gulachek::gtree
 		// static error decode(Tree &&tr, T &val);
 	};
 
+	template <typename T>
+	struct encoding_t : encoding<std::decay_t<T>> {};
+
 	// Does the type's encoding ever have a value?
 	template <typename T>
 	struct uses_value
 	{
-		static constexpr bool value = encoding<T>::uses_value;
+		static constexpr bool value = encoding_t<T>::uses_value;
 	};
 
 	template <typename T>
@@ -53,7 +58,7 @@ namespace gulachek::gtree
 	template <typename T>
 	struct uses_children
 	{
-		static constexpr bool value = encoding<T>::uses_children;
+		static constexpr bool value = encoding_t<T>::uses_children;
 	};
 
 	template <typename T>
@@ -72,16 +77,29 @@ namespace gulachek::gtree
 	// template <typename Tree, typename T>
 	// error decode(Tree &&t, T &val);
 
-	template <typename Tree, typename T>
-	error encode(T &&val, Tree &tr)
+	template <typename T, typename Tree>
+	error encode(const T &val, Tree &tr)
 	{
-		return encoding<std::decay_t<T>>::encode(std::forward<T>(val), tr);
+		return encoding_t<T>::encode(val, tr);
 	}
 
-	template <typename Tree, typename T>
-	error decode(Tree &&tr, T &val)
+	template <typename T, typename Tree>
+					 
+	error encode(T &&val, Tree &tr) requires std::is_rvalue_reference_v<T>
 	{
-		return encoding<std::decay_t<T>>::decode(std::forward<Tree>(tr), val);
+		return encoding_t<T>::encode(std::move(val), tr);
+	}
+
+	template <Tree Tr, typename T>
+	error decode(const Tr &tr, T &val)
+	{
+		return encoding_t<T>::decode(tr, val);
+	}
+
+	template <Tree Tr, typename T>
+	error decode(Tr &&tr, T &val) requires std::is_rvalue_reference_v<T>
+	{
+		return encoding_t<T>::decode(std::move(tr), val);
 	}
 }
 

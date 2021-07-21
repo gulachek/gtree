@@ -26,7 +26,7 @@ struct foo
 
 	gtree_encoding n;
 
-	gt::error gtree_encode(unsigned int &n)
+	gt::error gtree_encode(unsigned int &n) const
 	{
 		if (this->n == 42)
 			return "42";
@@ -125,7 +125,7 @@ class val
 		using gtree_encoding = gt::value_encoding;
 
 		template <typename MutableTree>
-		gt::error gtree_encode(MutableTree &tr)
+		gt::error gtree_encode(MutableTree &tr) const
 		{
 			return gt::encode((std::uint64_t)_n, tr);
 		}
@@ -189,7 +189,7 @@ class cont
 		using gtree_encoding = gt::container_encoding;
 
 		template <typename MutableTree>
-		gt::error gtree_encode(MutableTree &tr)
+		gt::error gtree_encode(MutableTree &tr) const
 		{
 			return gt::encode(_v, tr);
 		}
