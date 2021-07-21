@@ -168,9 +168,8 @@ namespace gulachek::gtree
 		return !(left == right);
 	}
 
-	template <typename Tree,
-					 std::enable_if_t<is_tree<Tree>::value, int> = 0>
-	bool is_empty(const Tree &t)
+	template <Tree Tr>
+	bool is_empty(const Tr &t)
 	{
 		return t.value().empty() && t.child_count() == 0;
 	}
