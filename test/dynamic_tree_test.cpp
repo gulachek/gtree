@@ -12,12 +12,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-BOOST_AUTO_TEST_CASE(IsTree)
-{
-	BOOST_TEST(gt::is_tree<
-			gt::dynamic_to_static<gt::dynamic_ref>>::value);
-}
-
 std::size_t child_count(const gt::dynamic_tree &tr)
 {
 	return tr.child_count();

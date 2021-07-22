@@ -11,6 +11,15 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
+namespace gulachek::gtree
+{
+	template <Tree T>
+	struct is_tree<T>
+	{
+		static constexpr bool value = true;
+	};
+}
+
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 BOOST_AUTO_TEST_CASE(MoveConstructible)
@@ -36,9 +45,7 @@ struct basic_tree {
 struct mutable_value : basic_tree
 {
 	const gt::block value() const { return basic_tree::value(); }
-
-	template <typename T>
-	void value(T begin, T end);
+	void value(const gt::block &b);
 };
 
 BOOST_AUTO_TEST_CASE(NoConflictWithMutableValue)
@@ -59,7 +66,7 @@ BOOST_AUTO_TEST_CASE(NoConflictWithMutableChildCount)
 	BOOST_TEST(gt::is_tree<mutable_child_count>::value);
 }
 
-struct MutableChild : basic_tree
+struct mutable_child : basic_tree
 {
 	basic_tree child(std::size_t i) const;
 
@@ -68,7 +75,7 @@ struct MutableChild : basic_tree
 
 BOOST_AUTO_TEST_CASE(NoConflictWithMutableChild)
 {
-	BOOST_TEST(gt::is_tree<MutableChild>::value);
+	BOOST_TEST(gt::is_tree<mutable_child>::value);
 }
 
 BOOST_AUTO_TEST_CASE(basic_treeIsTree)
@@ -248,16 +255,6 @@ BOOST_AUTO_TEST_CASE(ChildIsCrefSelfIsTree)
 	BOOST_TEST(gt::is_tree<ChildIsCrefSelf>::value);
 }
 
-BOOST_AUTO_TEST_CASE(ChildIsRefSelfIsNotTree)
-{
-	struct ChildIsRefSelf : TreeNoChild
-	{
-		ChildIsRefSelf& child(std::size_t) const;
-	};
-
-	BOOST_TEST(!gt::is_tree<ChildIsRefSelf>::value);
-}
-
 BOOST_AUTO_TEST_CASE(ChildIsOtherTreeIsTree)
 {
 	struct ChildIsOtherTree : TreeNoChild
@@ -276,16 +273,6 @@ BOOST_AUTO_TEST_CASE(ChildIsCrefOtherIsTree)
 	};
 
 	BOOST_TEST(gt::is_tree<ChildIsCrefOther>::value);
-}
-
-BOOST_AUTO_TEST_CASE(ChildIsRefOtherIsNotTree)
-{
-	struct ChildIsRefOther : TreeNoChild
-	{
-		basic_tree& child(std::size_t) const;
-	};
-
-	BOOST_TEST(!gt::is_tree<ChildIsRefOther>::value);
 }
 
 BOOST_AUTO_TEST_CASE(ChildIsNotConstMethodIsNotTree)

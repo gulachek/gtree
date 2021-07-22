@@ -21,7 +21,7 @@ namespace gulachek::gtree
 		template <typename String, typename MutableTree>
 		static error encode(String &&val, MutableTree &tree)
 		{
-			tree.value(val.begin(), val.end());
+			tree.value({(std::uint8_t*)val.data(), val.size()});
 			return {};
 		}
 

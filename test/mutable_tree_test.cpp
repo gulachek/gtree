@@ -11,10 +11,22 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
+namespace gulachek::gtree
+{
+	template <Tree Tr>
+	struct is_tree<Tr>
+	{
+		static constexpr bool value = true;
+	};
+}
+
+template <gt::MutableTree T>
+void assert_mutable()
+{}
+
 struct Basicmutable_tree
 {
-	template <typename Iterator>
-	void value(Iterator first, Iterator last);
+	void value(const gt::block &b);
 
 	const gt::block value() const;
 
@@ -25,15 +37,13 @@ struct Basicmutable_tree
 	Basicmutable_tree child(std::size_t) const;
 };
 
-struct ContrivedNotTree : Basicmutable_tree {};
-template <>
-struct gt::is_tree<ContrivedNotTree> : std::false_type {};
+struct ContrivedNotTree {};
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 BOOST_AUTO_TEST_CASE(CanonicalIsmutable_tree)
 {
-	BOOST_TEST(gt::is_mutable_tree<gt::mutable_tree>::value);
+	assert_mutable<gt::mutable_tree>();
 }
 
 BOOST_AUTO_TEST_SUITE(Ismutable_tree)
@@ -66,8 +76,7 @@ BOOST_AUTO_TEST_CASE(NoValueIsNotMT)
 
 struct ValueConstMethod : NoValue
 {
-	template <typename Iterator>
-	void value(Iterator, Iterator) const;
+	void value(const gt::block &) const;
 };
 
 BOOST_AUTO_TEST_CASE(ValueConstMethodIsNotMT)
@@ -77,8 +86,7 @@ BOOST_AUTO_TEST_CASE(ValueConstMethodIsNotMT)
 
 struct NoChildCount
 {
-	template <typename Iterator>
-	void value(Iterator first, Iterator last);
+	void value(const gt::block &);
 	const gt::block value() const;
 
 	std::size_t child_count() const;
@@ -104,8 +112,7 @@ BOOST_AUTO_TEST_CASE(ConstChildCountMethodIsNotMT)
 
 struct NoChild
 {
-	template <typename Iterator>
-	void value(Iterator first, Iterator last);
+	void value(const gt::block &);
 	const gt::block value() const;
 
 	void child_count(std::size_t);
@@ -139,16 +146,6 @@ BOOST_AUTO_TEST_CASE(ChildValueToSelfIsNotMT)
 	BOOST_TEST(!gt::is_mutable_tree<ChildValueSelf>::value);
 }
 
-BOOST_AUTO_TEST_CASE(ChildRefToConstSelfIsNotMT)
-{
-	struct ChildRefConstSelf : NoChild
-	{
-		ChildRefConstSelf& child(std::size_t) const;
-	};
-
-	BOOST_TEST(!gt::is_mutable_tree<ChildRefConstSelf>::value);
-}
-
 BOOST_AUTO_TEST_CASE(ChildConstRefToOtherIsNotMT)
 {
 	struct ChildCrefOther : NoChild
@@ -169,16 +166,6 @@ BOOST_AUTO_TEST_CASE(ChildValueToOtherIsNotMT)
 	BOOST_TEST(!gt::is_mutable_tree<ChildValueOther>::value);
 }
 
-BOOST_AUTO_TEST_CASE(ChildRefToConstOtherIsNotMT)
-{
-	struct ChildRefConstOther : NoChild
-	{
-		Basicmutable_tree& child(std::size_t) const;
-	};
-
-	BOOST_TEST(!gt::is_mutable_tree<ChildRefConstOther>::value);
-}
-
 BOOST_AUTO_TEST_CASE(ChildRefNonMTIsNotMT)
 {
 	struct ChildRefNonMT : NoChild
@@ -197,7 +184,6 @@ BOOST_AUTO_TEST_CASE(ChildRefOtherMTIsMT)
 		const Basicmutable_tree& child(std::size_t) const;
 	};
 
-	BOOST_REQUIRE(gt::is_tree<ChildRefMT>::value);
 	BOOST_TEST(gt::is_mutable_tree<ChildRefMT>::value);
 }
 
@@ -220,7 +206,7 @@ BOOST_AUTO_TEST_CASE(AssignedValuePersists)
 	gt::mutable_tree left{ value };
 	gt::mutable_tree right;
 
-	right.value(value.begin(), value.end());
+	right.value({value.data(), value.size()});
 
 	auto size = right.value().size();
 	BOOST_TEST(size == 3);

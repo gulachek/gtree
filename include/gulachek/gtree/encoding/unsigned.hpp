@@ -4,6 +4,7 @@
 #include "gulachek/gtree/encoding/encoding.hpp"
 
 #include <cstdint>
+#include <cmath>
 #include <list>
 #include <type_traits>
 
@@ -24,18 +25,20 @@ namespace gulachek::gtree
 		static error encode(U &&val, MutableTree &tree)
 		{
 			auto n = val;
-			std::list<std::uint8_t> bytes;
+			std::vector<std::uint8_t> bytes;
+			bytes.resize(sizeof(U));
+			std::size_t i = 0;
 
 			while (n > 0)
 			{
-				bytes.push_back(n);
+				bytes[i++] = (n & 0xff);
 
 				// avoid compiler warning for width of type here
 				if constexpr (sizeof(T) == 1) n = 0;
 				else n >>= 8;
 			}
 
-			tree.value(bytes.begin(), bytes.end());
+			tree.value({bytes.data(), i});
 
 			return {};
 		}

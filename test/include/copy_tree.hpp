@@ -8,6 +8,8 @@
 class CopyTree
 {
 	public:
+		CopyTree() = default;
+
 		template <typename Tree>
 		CopyTree(const Tree &tree)
 		{

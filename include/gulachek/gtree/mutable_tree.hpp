@@ -91,11 +91,10 @@ namespace gulachek::gtree
 				};
 			}
 
-			template <typename Iterator>
-			void value(Iterator first, Iterator last)
+			void value(const block &b)
 			{
 				_value = std::make_shared<value_type>(
-						std::vector<std::uint8_t>{first, last}
+						std::vector<std::uint8_t>{b.data(), b.data() + b.size()}
 						);
 			}
 
@@ -116,6 +115,7 @@ namespace gulachek::gtree
 			std::vector<mutable_tree> _children;
 	};
 
+	/*
 	template <typename T>
 	class is_mutable_tree
 	{
@@ -172,6 +172,47 @@ namespace gulachek::gtree
 				has_value<T>(nullptr) &&
 				has_child_count<T>(nullptr) &&
 				has_child<T>(nullptr);
+	};
+	*/
+
+	template <typename T>
+	struct mt_implements_child_
+	{
+		static constexpr bool value = false;
+	};
+
+	template <typename T, typename Self>
+	concept MutableTreeImplementsChild_ =
+		std::is_lvalue_reference_v<T> &&
+		!std::is_const_v<T> &&
+		(std::is_same_v<std::remove_reference_t<T>, Self> ||
+		mt_implements_child_<std::remove_reference_t<T>>::value);
+
+	template <typename T>
+	concept MutableTree = Tree<T> &&
+	requires(T tr, const block &b, std::size_t i)
+	{
+		{ tr.value(b) };
+		{ tr.child_count(i) };
+		{ tr.child(i) } -> MutableTreeImplementsChild_<T>;
+	};
+
+	template <MutableTree T>
+	struct mt_implements_child_<T>
+	{
+		static constexpr bool value = true;
+	};
+
+	template <typename T>
+	struct is_mutable_tree
+	{
+		constexpr static bool value = false;
+	};
+
+	template <MutableTree T>
+	struct is_mutable_tree<T>
+	{
+		constexpr static bool value = true;
 	};
 }
 

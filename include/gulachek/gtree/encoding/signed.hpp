@@ -36,7 +36,7 @@ namespace gulachek::gtree
 
 			// the power of positive thinking
 			mutable_tree pos;
-			pos.value(start, start + nbytes);
+			pos.value({start, nbytes});
 			if (is_neg) twos_complement(pos.value());
 			
 			std::size_t base;

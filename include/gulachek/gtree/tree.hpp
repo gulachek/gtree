@@ -40,87 +40,6 @@ namespace gulachek::gtree
 	};
 
 	template <typename T>
-	class is_tree
-	{
-		using Block = gulachek::gtree::block;
-
-		// Assert that the tree has a value method:
-		// const Block value() const;
-		template <typename U>
-		static constexpr bool has_value(...) { return false; }
-
-		template <typename U,
-		 decltype(std::declval<const U>().value())* ValuePtr = nullptr,
-		 typename ValRet = std::remove_pointer_t<decltype(ValuePtr)>
-							 >
-		static constexpr typename std::enable_if<
-			std::is_same<ValRet, const Block>::value
-		,bool>::type has_value(void*) { return true; }
-
-		// Assert that the tree has a child_count method:
-		// std::size_t child_count() const;
-		template <typename U>
-		static constexpr bool has_child_count(...) { return false; }
-
-		template <typename U,
-		 decltype(std::declval<const U>().child_count())* CCPtr = nullptr,
-		 typename Ret = std::remove_pointer_t<decltype(CCPtr)>
-							 >
-		static constexpr typename std::enable_if<
-			std::is_same<Ret, std::size_t>::value
-		,bool>::type has_child_count(void*) { return true; }
-
-		// Assert that the tree has a child_count method:
-		// is_tree<T> child(std::size_t i) const;
-		template <typename U>
-		static constexpr bool has_child(...) { return false; }
-
-		template <typename TU, typename TRet>
-		static constexpr std::enable_if_t<is_tree<TRet>::value, bool> second_is_tree;
-
-		template <typename U,
-		 std::remove_reference_t<decltype(std::declval<const U>().child(0))>* CPtr = nullptr,
-		 typename RefRet = decltype(std::declval<const U>().child(0)),
-		 typename Ret = std::remove_reference_t<RefRet>
-							 >
-		static constexpr typename std::enable_if<
-			(std::is_const_v<Ret> ||
-			!std::is_reference_v<RefRet>) &&
-			std::is_same<Ret, U>::value
-		,bool>::type has_child(void*) { return true; }
-
-		template <typename U,
-		 std::remove_reference_t<decltype(std::declval<const U>().child(0))>* CPtr = nullptr,
-		 typename RefRet = decltype(std::declval<const U>().child(0)),
-		 typename Ret = std::remove_reference_t<RefRet>
-							 >
-		static constexpr typename std::enable_if<
-			(std::is_const_v<Ret> ||
-			!std::is_reference_v<RefRet>) &&
-			is_tree<Ret>::value
-		,bool>::type has_child(void*) { return true; }
-
-		static constexpr bool implies(bool p, bool q)
-		{
-			return (p && q) || !p;
-		}
-
-		public:
-			static constexpr bool value =
-				std::conjunction_v<
-					std::is_default_constructible<T>,
-					std::is_move_constructible<T>
-						> &&
-				has_value<T>(nullptr) &&
-				has_child_count<T>(nullptr) &&
-				has_child<T>(nullptr)
-				;
-	};
-
-	template <typename T>
-	constexpr bool is_tree_v = is_tree<T>::value;
-
-	template <typename T>
 	struct tree_implements_child_
 	{
 		constexpr static bool value = false;
@@ -128,11 +47,14 @@ namespace gulachek::gtree
 
 	template <typename T, typename Self>
 	concept TreeImplementsChild_ =
-		std::is_same_v<T, Self> || tree_implements_child_<T>::value;
+		std::is_same_v<std::decay_t<T>, Self> ||
+		tree_implements_child_<std::decay_t<T>>::value;
 
 	template <typename T>
 	concept Tree = requires(const T t, std::size_t i)
 	{
+		requires std::is_default_constructible_v<std::decay_t<T>>;
+		requires std::is_move_constructible_v<std::decay_t<T>>;
 		{ t.value() } -> std::same_as<const block>;
 		{ t.child_count() } -> std::same_as<std::size_t>;
 		{ t.child(i) } -> TreeImplementsChild_<T>;
@@ -173,6 +95,16 @@ namespace gulachek::gtree
 	{
 		return t.value().empty() && t.child_count() == 0;
 	}
+
+	template <typename T>
+	struct is_tree
+	{
+		static constexpr bool value = false;
+	};
+
+	template <typename T>
+	constexpr bool is_tree_v = is_tree<T>::value;
+
 }
 
 #endif

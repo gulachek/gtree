@@ -8,8 +8,8 @@
 
 namespace gulachek::gtree
 {
-	template <typename U>
-	struct encoding<U, std::enable_if_t<is_tree<U>::value, void>>
+	template <Tree U>
+	struct encoding<U>
 	{
 		static constexpr bool uses_value = true;
 		static constexpr bool uses_children = true;
@@ -26,22 +26,21 @@ namespace gulachek::gtree
 			return {};
 		}
 
-		template <typename Tree, typename T>
+		template <Tree Tr, typename T>
 		static error decode(
-				Tree &&src,
+				Tr &&src,
 				T &dest
 				)
 		{
-			copy_tree(std::forward<Tree>(src), dest);
+			copy_tree(std::forward<Tr>(src), dest);
 			return {};
 		}
 
 		private:
-			template <typename Tree, typename MutableTree>
-			static void copy_tree(Tree &&src, MutableTree &dest)
+			template <Tree Tr, typename MutableTree>
+			static void copy_tree(Tr &&src, MutableTree &dest)
 			{
-				auto val = src.value();
-				dest.value(val.data(), val.data() + val.size());
+				dest.value(src.value());
 
 				auto n = src.child_count();
 				dest.child_count(n);
