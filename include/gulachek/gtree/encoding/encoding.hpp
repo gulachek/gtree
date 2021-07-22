@@ -3,6 +3,7 @@
 
 #include "gulachek/gtree/error.hpp"
 #include "gulachek/gtree/tree.hpp"
+#include "gulachek/gtree/mutable_tree.hpp"
 #include <type_traits>
 #include <utility>
 
@@ -77,13 +78,13 @@ namespace gulachek::gtree
 	// template <typename Tree, typename T>
 	// error decode(Tree &&t, T &val);
 
-	template <typename T, typename Tree>
+	template <typename T, MutableTree Tree>
 	error encode(const T &val, Tree &tr)
 	{
 		return encoding_t<T>::encode(val, tr);
 	}
 
-	template <typename T, typename Tree>
+	template <typename T, MutableTree Tree>
 					 
 	error encode(T &&val, Tree &tr) requires std::is_rvalue_reference_v<T>
 	{
