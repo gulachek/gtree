@@ -202,18 +202,6 @@ namespace gulachek::gtree
 	{
 		static constexpr bool value = true;
 	};
-
-	template <typename T>
-	struct is_mutable_tree
-	{
-		constexpr static bool value = false;
-	};
-
-	template <MutableTree T>
-	struct is_mutable_tree<T>
-	{
-		constexpr static bool value = true;
-	};
 }
 
 #endif
