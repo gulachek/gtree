@@ -95,16 +95,6 @@ namespace gulachek::gtree
 	{
 		return t.value().empty() && t.child_count() == 0;
 	}
-
-	template <typename T>
-	struct is_tree
-	{
-		static constexpr bool value = false;
-	};
-
-	template <typename T>
-	constexpr bool is_tree_v = is_tree<T>::value;
-
 }
 
 #endif

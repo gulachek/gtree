@@ -11,15 +11,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-namespace gulachek::gtree
-{
-	template <Tree Tr>
-	struct is_tree<Tr>
-	{
-		static constexpr bool value = true;
-	};
-}
-
 template <gt::MutableTree T>
 void assert_mutable()
 {}

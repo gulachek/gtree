@@ -13,6 +13,15 @@ namespace gt = gulachek::gtree;
 
 namespace gulachek::gtree
 {
+	template <typename T>
+	struct is_tree
+	{
+		static constexpr bool value = false;
+	};
+
+	template <typename T>
+	constexpr bool is_tree_v = is_tree<T>::value;
+
 	template <Tree T>
 	struct is_tree<T>
 	{
