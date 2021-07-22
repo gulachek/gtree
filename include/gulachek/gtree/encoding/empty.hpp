@@ -14,6 +14,8 @@ namespace gulachek::gtree
 	template <typename U>
 	struct encoding<U, enable_t<typename empty_encoding<U>::type>>
 	{
+		using type = U;
+
 		static constexpr bool uses_value = false;
 		static constexpr bool uses_children = false;
 

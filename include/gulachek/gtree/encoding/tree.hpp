@@ -11,6 +11,8 @@ namespace gulachek::gtree
 	template <Tree U>
 	struct encoding<U>
 	{
+		using type = U;
+
 		static constexpr bool uses_value = true;
 		static constexpr bool uses_children = true;
 

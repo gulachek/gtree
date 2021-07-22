@@ -16,8 +16,8 @@ namespace gulachek::gtree
 		static constexpr bool uses_value = false;
 		static constexpr bool uses_children = true;
 
-		template <typename Map, typename MutableTree>
-		static error encode(Map &&val, MutableTree &tree)
+		template <typename Map, MutableTree Tree>
+		static error encode(Map &&val, Tree &tree)
 		{
 			tree.child_count(val.size());
 
@@ -32,8 +32,8 @@ namespace gulachek::gtree
 			return {};
 		}
 
-		template <typename Tree>
-		static error decode(Tree &tree, type &val)
+		template <Tree Tr>
+		static error decode(Tr &&tree, type &val)
 		{
 			val.clear();
 
@@ -41,7 +41,7 @@ namespace gulachek::gtree
 			{
 				std::pair<K, V> kv;
 
-				if (auto err = gtree::decode(std::forward<Tree>(tree).child(i), kv))
+				if (auto err = gtree::decode(std::forward<Tr>(tree).child(i), kv))
 					return err;
 
 				val.emplace(std::move(kv));
