@@ -2,6 +2,7 @@
 #define GULACHEK_GTREE_ENCODING_VARIANT_HPP
 
 #include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding/unsigned.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
