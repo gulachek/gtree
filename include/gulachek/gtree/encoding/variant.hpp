@@ -4,30 +4,41 @@
 #include "gulachek/gtree/encoding/encoding.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/utility/value_init.hpp>
 #include <variant>
 #include <type_traits>
 
 namespace gulachek::gtree
 {
-	// Specialize this with:
-	// 	MPL sequence of variant alternative types
-	// 	typedef ... sequence;
-	//
-	// 	Runtime index of an instance of the variant type
-	// 	std::size_t index(const Variant &);
 	template <typename Variant>
 	struct variant_encoding
 	{};
+
+	template <std::size_t I, typename Head, typename ...Tail>
+	struct meta_cons_
+	{
+		static constexpr std::size_t index = I;
+		static constexpr bool has_next = true;
+		using type = Head;
+
+		using next = meta_cons_<I+1, Tail...>;
+	};
+
+	template <std::size_t I, typename End>
+	struct meta_cons_<I, End>
+	{
+		static constexpr std::size_t index = I;
+		static constexpr bool has_next = false;
+		using type = End;
+	};
+
+	template <typename ...Ts>
+	struct meta_cons : meta_cons_<0, Ts...> {};
 
 	// Specialization for std::variant
 	template <typename ...Ts>
 	struct variant_encoding<std::variant<Ts...>>
 	{
-		typedef typename boost::mpl::vector<Ts...>::type sequence;
+		using types = meta_cons<Ts...>;
 
 		template <typename Var>
 		static std::size_t index(Var &&v)
@@ -39,87 +50,40 @@ namespace gulachek::gtree
 	};
 
 	template <typename Variant>
-	struct encoding<Variant, enable_t<typename variant_encoding<Variant>::sequence>>
+	struct encoding<Variant, enable_t<typename variant_encoding<Variant>::types>>
 	{
 		using type = Variant;
 		using var_encoding = variant_encoding<Variant>;
+		using types = typename var_encoding::types;
 
-		template <
-			std::size_t I,
-			typename Sequence,
-			typename Function,
-			typename ForwardRef,
-			std::enable_if_t<
-				I >= boost::mpl::size<Sequence>::value,
-				void*> = nullptr
-				>
-		static error __run_at_elem(std::size_t i, Function &&f, ForwardRef &&ref)
+		template <typename Types, typename Tree, typename V>
+		static error encode_(V &&var, Tree &tree, std::size_t i)
 		{
-			return "Variant index out of range";
-		}
+			using type = typename Types::type;
 
-		template <
-			std::size_t I,
-			typename Sequence,
-			typename Function,
-			typename ForwardRef,
-			std::enable_if_t<
-				I < boost::mpl::size<Sequence>::value,
-				void*> = nullptr
-				>
-		static error __run_at_elem(std::size_t i, Function &&f, ForwardRef &&ref)
-		{
-			if (i == I)
-			{
-				boost::value_initialized<
-					typename boost::mpl::at_c<Sequence, I>::type
-					> v;
-
-				return std::invoke(
-						std::forward<Function>(f),
-						boost::get(v),
-						std::forward<ForwardRef>(ref)
-						);
-			}
-			else
-			{
-				return __run_at_elem<I+1, Sequence, Function, ForwardRef>(
-						i,
-						std::forward<Function>(f),
-						std::forward<ForwardRef>(ref)
-						);
-			}
-		}
-
-		template <typename Sequence, typename Function, typename ForwardRef>
-		static auto __run_at_elem(std::size_t i, Function &&f, ForwardRef &&ref)
-		{
-			return __run_at_elem<0, Sequence, Function, ForwardRef>
-				(i, std::forward<Function>(f), std::forward<ForwardRef>(ref));
-		}
-
-		template <typename Tree>
-		struct __encode_functor
-		{
-			Tree &tr;
-
-			template <typename T, typename Var>
-			error operator() (T, Var &&val)
+			if (i == Types::index)
 			{
 				auto &&ref = var_encoding::
-					template get<T>(std::forward<Var>(val));
+					template get<type>(std::forward<V>(var));
 
-				if constexpr (gtree::uses_value<T>::value)
+				if constexpr (gtree::uses_value<type>::value)
 				{
-					tr.child_count(1);
-					return gtree::encode(std::forward<T>(ref), tr.child(0));
+					tree.child_count(1);
+					return gtree::encode(std::forward<type>(ref), tree.child(0));
 				}
 				else
 				{
-					return gtree::encode(std::forward<T>(ref), tr);
+					return gtree::encode(std::forward<type>(ref), tree);
 				}
 			}
-		};
+
+			if constexpr (Types::has_next)
+			{
+				return encode_<typename Types::next>(std::forward<V>(var), tree, i);
+			}
+
+			return error{"Variant index out of range"};
+		}
 
 		// Variant has type index as value and data as first child
 		template <
@@ -131,39 +95,43 @@ namespace gulachek::gtree
 				Tree &tree
 				)
 		{
-			typedef typename var_encoding::sequence seq;
-
 			// can I use a const lvalue to pass here?
 			auto index = var_encoding::index(std::forward<V>(val));
 
 			// assume integers can't fail encoding
 			gtree::encode(index, tree);
-
-			__encode_functor<Tree> ftor{tree};
-			return __run_at_elem<seq>(index, ftor, std::forward<V>(val));
+			return encode_<types>(std::forward<V>(val), tree, index);
 		}
 
-		struct __decode_functor
+		template <typename Types, typename Tree>
+		static error decode_(Tree &&tree, type &val, std::size_t i)
 		{
-			type &val;
+			using type = typename Types::type;
 
-			template <typename T, typename Tree>
-			error operator() (T, Tree &&tr)
+			if (i == Types::index)
 			{
-				T elem;
+				type elem;
 
 				// No need for indirection if no value is in the way
 				error err;
-				if constexpr (gtree::uses_value<T>::value)
-					err = gtree::decode(std::forward<Tree>(tr).child(0), elem);
+				if constexpr (gtree::uses_value<type>::value)
+					err = gtree::decode(std::forward<Tree>(tree).child(0), elem);
 				else
-					err = gtree::decode(std::forward<Tree>(tr), elem);
+					err = gtree::decode(std::forward<Tree>(tree), elem);
 
 				if (err) return err;
 				val = std::move(elem);
 				return {};
 			}
-		};
+
+			if constexpr (Types::has_next)
+			{
+				return decode_<typename Types::next>
+					(std::forward<Tree>(tree), val, i);
+			}
+
+			return error{"Variant index out of range"};
+		}
 
 		template <
 			typename Tree
@@ -173,13 +141,12 @@ namespace gulachek::gtree
 				type &val
 				)
 		{
-			typedef typename var_encoding::sequence seq;
 			std::size_t index;
+
 			if (auto err = gtree::decode(std::forward<Tree>(tree), index))
 				return err;
 
-			__decode_functor ftor{val};
-			return __run_at_elem<seq>(index, ftor, std::forward<Tree>(tree));
+			return decode_<types>(std::forward<Tree>(tree), val, index);
 		}
 
 		static constexpr bool uses_value = true;
