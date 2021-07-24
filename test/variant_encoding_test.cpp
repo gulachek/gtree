@@ -18,6 +18,18 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
+// this should go in a meta_cons file
+BOOST_AUTO_TEST_CASE(MetaConsCanFindTypeIndex)
+{
+	using cons = gt::meta_cons<int, std::string, bool>;
+	constexpr auto i0 = gt::index_of<cons, int>();
+	constexpr auto i1 = gt::index_of<cons, std::string>();
+	constexpr auto i2 = gt::index_of<cons, bool>();
+	BOOST_TEST(i0 == 0);
+	BOOST_TEST(i1 == 1);
+	BOOST_TEST(i2 == 2);
+}
+
 BOOST_AUTO_TEST_CASE(UsesValue)
 {
 	using my_var = std::variant<std::size_t, std::string>;

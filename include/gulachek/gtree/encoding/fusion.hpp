@@ -143,16 +143,16 @@ namespace gulachek::gtree
 					}
 					else
 					{
-						if (auto err = gtree::decode(std::forward<Tree>(tree.child(0)), left))
+						if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), left))
 							return err;
 					}
 				}
 				else
 				{
-					if (auto err = gtree::decode(std::forward<Tree>(tree.child(0)), left))
+					if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), left))
 						return err;
 
-					if (auto err = gtree::decode(std::forward<Tree>(tree.child(1)), right))
+					if (auto err = gtree::decode(std::forward<Tree>(tree).child(1), right))
 						return err;
 				}
 

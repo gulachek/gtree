@@ -31,6 +31,18 @@ namespace gulachek::gtree
 		using type = End;
 	};
 
+	template <typename Cons, typename T>
+	constexpr std::ptrdiff_t index_of()
+	{
+		if constexpr (std::is_same_v<typename Cons::type, T>)
+			return Cons::index;
+
+		if constexpr (Cons::has_next)
+			return index_of<typename Cons::next, T>();
+
+		return -1;
+	}
+
 	template <typename ...Ts>
 	struct meta_cons : meta_cons_<0, Ts...> {};
 
