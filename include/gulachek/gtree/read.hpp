@@ -3,10 +3,15 @@
 
 #include "gulachek/gtree/error.hpp"
 #include "gulachek/gtree/mutable_tree.hpp"
+#include "gulachek/gtree/itreem.hpp"
+
+#include <fstream>
+#include <string_view>
 
 namespace gulachek::gtree
 {
 	template <typename TreeReader, typename T>
+		requires Tree<typename TreeReader::tree_type> // make a TreeReader concept later
 	error read(TreeReader &reader, T &t)
 	{
 		typename TreeReader::tree_type tr;
@@ -18,6 +23,27 @@ namespace gulachek::gtree
 			return err;
 
 		return {};
+	}
+
+	template <typename T>
+	error read(std::istream &is, T &t)
+	{
+		itreem treem{is};
+		return read<itreem, T>(treem, t);
+	}
+
+	template <typename T>
+	error read_file(const std::string_view &path, T &t)
+	{
+		std::fstream f{path};
+		if (!f)
+		{
+			error err;
+			err << "Failed to open file: " << path;
+			return err;
+		}
+
+		return read(f, t);
 	}
 }
 
