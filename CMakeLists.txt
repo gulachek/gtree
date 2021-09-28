@@ -97,25 +97,17 @@ target_link_libraries(vs_json ${core} Boost::timer Boost::json)
 #############################################
 
 set(export_name gulachek_gtree-config)
+set(export_targets_name gulachek_gtree_targets)
+set(export_config_dir "lib/cmake/${export_name}")
 
 # Install library binaries
 install(TARGETS ${core}
-	EXPORT ${export_name}
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
+	EXPORT ${export_targets_name}
 	)
 
-install(TARGETS gtree2hex
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	)
-
-install(TARGETS gnz2dec
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
+install(TARGETS
+	gtree2hex
+	gnz2dec
 	)
 
 install(DIRECTORY include/gulachek/
@@ -127,6 +119,18 @@ install(DIRECTORY ${platform_dir}/gulachek/
 	)
 
 # Install cmake package
-install(EXPORT ${export_name} 
-	DESTINATION lib/cmake/${export_name}
+install(EXPORT ${export_targets_name} 
+	DESTINATION ${export_config_dir}
+	)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+	  "${CMAKE_CURRENT_BINARY_DIR}/${export_name}.cmake"
+		  INSTALL_DESTINATION ${export_config_dir}
+			)
+
+install(FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/${export_name}.cmake"
+	DESTINATION ${export_config_dir}
 	)
