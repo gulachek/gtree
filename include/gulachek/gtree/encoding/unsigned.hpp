@@ -46,14 +46,21 @@ namespace gulachek::gtree
 		template <typename Tree>
 		static error decode(Tree &&t, T &n)
 		{
-			if (t.value().size() > sizeof(std::decay_t<T>))
-				return "Integer too big";
+			auto tval = t.value();
+			auto size = tval.size();
+			constexpr auto width = sizeof(std::decay_t<T>);
+			if (size > width)
+			{
+				error err;
+				err << "Unsigned integer overflow. '" << size << "' cannot fit in '"
+					<< width << "' byte(s)";
+				return err;
+			}
 
 			n = 0;
 
-			auto tval = t.value();
 			auto start = tval.data();
-			for (std::size_t i = 0; i < tval.size(); i++)
+			for (std::size_t i = 0; i < size; i++)
 			{
 				T b = start[i];
 				n |= (b << 8*i);

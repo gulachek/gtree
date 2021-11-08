@@ -25,11 +25,20 @@ namespace gulachek::gtree
 
 			auto val = t.value();
 			auto nbytes = val.size();
+			constexpr auto width = sizeof(type);
 
 			if (nbytes == 0)
+			{
 				return {};
-			else if (nbytes > sizeof(type))
-				return "Integer too big";
+			}
+			else if (nbytes > width)
+			{
+				error err;
+				err << "Signed integer overflow. " << nbytes << " byte(s) > "
+					<< width << " byte(s)";
+				return err;
+			}
+
 
 			auto start = val.data();
 			bool is_neg = start[nbytes-1] & 0x80;
