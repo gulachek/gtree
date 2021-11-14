@@ -6,6 +6,7 @@
 #include "gulachek/gtree/itreem.hpp"
 
 #include <fstream>
+#include <filesystem>
 #include <string_view>
 
 namespace gulachek::gtree
@@ -33,7 +34,7 @@ namespace gulachek::gtree
 	}
 
 	template <typename T>
-	error read_file(const std::string_view &path, T &t)
+	error read_file(const std::filesystem::path &path, T &t)
 	{
 		std::fstream f{path};
 		if (!f)
