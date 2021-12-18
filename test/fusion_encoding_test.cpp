@@ -63,82 +63,10 @@ BOOST_AUTO_TEST_SUITE_END() // SingleElement
 
 BOOST_AUTO_TEST_SUITE(Pair)
 
-BOOST_AUTO_TEST_CASE(UsesValueIfValueContainer)
-{
-	using pair = fusion::vector<test_value, test_container>;
-	BOOST_TEST(gt::uses_value< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesValueIfContainerValue)
-{
-	using pair = fusion::vector<test_value, test_container>;
-	BOOST_TEST(gt::uses_value< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoValueIfGeneralGeneral)
-{
-	using pair = fusion::vector<test_general, test_general>;
-	BOOST_TEST(!gt::uses_value< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildrenIfValueContainer)
-{
-	using pair = fusion::vector<test_value, test_container>;
-	BOOST_TEST(gt::uses_children< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildrenIfContainerValue)
-{
-	using pair = fusion::vector<test_value, test_container>;
-	BOOST_TEST(gt::uses_children< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildrenIfGeneralGeneral)
-{
-	using pair = fusion::vector<test_general, test_general>;
-	BOOST_TEST(gt::uses_children< pair >::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildrenIfValueValue)
-{
-	using pair = fusion::vector<test_value, test_value>;
-	BOOST_TEST(gt::uses_children< pair >::value);
-}
-
-BOOST_AUTO_TEST_SUITE(ValueContainer)
-
 BOOST_AUTO_TEST_CASE(Decode)
 {
-	gt::mutable_tree tr{ { 1 }, {
-		gt::mutable_tree{ {2} }
-	}};
-
-	fusion::vector<test_value, test_container> pair;
-	BOOST_TEST(!gt::decode(tr, pair));
-
-	BOOST_TEST(at_c<0>(pair) == 1);
-	BOOST_TEST(*(at_c<1>(pair)) == 2);
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ { 1 }, {
-		gt::mutable_tree{ {2} }
-	}}, result;
-
-	fusion::vector<test_value, test_container> pair{1, 2};
-	BOOST_TEST(!gt::encode(pair, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // ValueContainer
-
-BOOST_AUTO_TEST_SUITE(ValueGeneral)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ { 1 }, {
+	gt::mutable_tree tr{ {}, {
+		gt::mutable_tree{ {1} },
 		gt::mutable_tree{ {2} }
 	}};
 
@@ -151,7 +79,8 @@ BOOST_AUTO_TEST_CASE(Decode)
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-	gt::mutable_tree expect{ { 1 }, {
+	gt::mutable_tree expect{ {}, {
+		gt::mutable_tree{ {1} },
 		gt::mutable_tree{ {2} }
 	}}, result;
 
@@ -160,112 +89,6 @@ BOOST_AUTO_TEST_CASE(Encode)
 
 	BOOST_CHECK(result == expect);
 }
-
-BOOST_AUTO_TEST_SUITE_END() // ValueGeneral
-
-BOOST_AUTO_TEST_SUITE(ContainerValue)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ { 2 }, {
-		gt::mutable_tree{ {1} }
-	}};
-
-	fusion::vector<test_container, test_value> pair;
-	BOOST_TEST(!gt::decode(tr, pair));
-
-	BOOST_TEST(*(at_c<0>(pair)) == 1);
-	BOOST_TEST(at_c<1>(pair) == 2);
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ { 2 }, {
-		gt::mutable_tree{ {1} }
-	}}, result;
-
-	fusion::vector<test_container, test_value> pair{1, 2};
-	BOOST_TEST(!gt::encode(pair, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // ContainerValue
-
-BOOST_AUTO_TEST_SUITE(GeneralValue)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ { 3 }, {
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {2} }
-		}	}
-	}};
-
-	fusion::vector<test_general, test_value> pair;
-	BOOST_TEST(!gt::decode(tr, pair));
-
-	auto n = std::get<std::uint32_t>(at_c<0>(pair));
-	BOOST_TEST(n == 2);
-	BOOST_TEST(at_c<1>(pair) == 3);
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ { 3 }, {
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {2} }
-		}	}
-	}}, result;
-
-	fusion::vector<test_general, test_value> pair{2u, 3};
-	BOOST_TEST(!gt::encode(pair, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // GeneralValue
-
-BOOST_AUTO_TEST_SUITE(GeneralGeneral)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ {
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {2} }
-		}	},
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {3} }
-		}	}
-	}};
-
-	fusion::vector<test_general, test_general> pair;
-	BOOST_TEST(!gt::decode(tr, pair));
-
-	auto m = std::get<std::uint32_t>(at_c<0>(pair));
-	auto n = std::get<std::uint32_t>(at_c<1>(pair));
-	BOOST_TEST(m == 2);
-	BOOST_TEST(n == 3);
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ {
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {2} }
-		}	},
-		gt::mutable_tree{ {1}, {
-			gt::mutable_tree{ {3} }
-		}	}
-	}}, result;
-
-	fusion::vector<test_general, test_general> pair{2u, 3u};
-	BOOST_TEST(!gt::encode(pair, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // GeneralGeneral
 
 BOOST_AUTO_TEST_SUITE_END() // Pair
 
@@ -359,47 +182,7 @@ BOOST_FUSION_ADAPT_ADT(::triple,
 		(obj.third(), obj.third(val))
 		);
 
-class value_container
-{
-	public:
-		std::uint32_t value() const { return _v; }
-		void value(std::uint32_t v) { _v = v; }
-
-		std::vector<std::uint32_t> container() const { return _c; }
-		void container(const std::vector<std::uint32_t> &c)
-		{ _c = c; }
-
-	private:
-		std::uint32_t _v;
-		std::vector<std::uint32_t> _c;
-};
-
-BOOST_FUSION_ADAPT_ADT(::value_container,
-		(obj.value(), obj.value(val))
-		(obj.container(), obj.container(val))
-		);
-
-class container_value
-{
-	public:
-		std::uint32_t value() const { return _v; }
-		void value(std::uint32_t v) { _v = v; }
-
-		std::vector<std::uint32_t> container() const { return _c; }
-		void container(const std::vector<std::uint32_t> &c)
-		{ _c = c; }
-
-	private:
-		std::uint32_t _v;
-		std::vector<std::uint32_t> _c;
-};
-
-BOOST_FUSION_ADAPT_ADT(::container_value,
-		(obj.container(), obj.container(val))
-		(obj.value(), obj.value(val))
-		);
-
-class value_value
+class my_pair
 {
 	public:
 		std::uint32_t first() const { return _f; }
@@ -414,7 +197,7 @@ class value_value
 		std::uint32_t _s;
 };
 
-BOOST_FUSION_ADAPT_ADT(::value_value,
+BOOST_FUSION_ADAPT_ADT(::my_pair,
 		(obj.first(), obj.first(val))
 		(obj.second(), obj.second(val))
 		);
@@ -463,158 +246,34 @@ BOOST_AUTO_TEST_SUITE_END() // SingleElement
 
 BOOST_AUTO_TEST_SUITE(Pair)
 
-BOOST_AUTO_TEST_SUITE(ValueContainer)
-
 BOOST_AUTO_TEST_CASE(Decode)
 {
-	gt::mutable_tree tr{ { 1 }, {
+	gt::mutable_tree tr{ {}, {
+		gt::mutable_tree{ {1} },
 		gt::mutable_tree{ {2} }
 	}};
 
-	value_container vc;
-	BOOST_TEST(!gt::decode(tr, vc));
+	my_pair p;
+	BOOST_TEST(!gt::decode(tr, p));
 
-	BOOST_TEST(vc.value() == 1);
-	BOOST_TEST(vc.container()[0] == 2);
-}
-
-BOOST_AUTO_TEST_CASE(DecodeValueFails)
-{
-	gt::mutable_tree tr{ { 1, 2, 3, 4, 5 }, {
-		gt::mutable_tree{ {2} }
-	}};
-
-	value_container vc;
-	BOOST_TEST(gt::decode(tr, vc));
-}
-
-BOOST_AUTO_TEST_CASE(DecodeContainerFails)
-{
-	gt::mutable_tree tr{ { 1 }, {
-		gt::mutable_tree{ {2, 3, 4, 5, 6} }
-	}};
-
-	value_container vc;
-	BOOST_TEST(gt::decode(tr, vc));
+	BOOST_TEST(p.first() == 1);
+	BOOST_TEST(p.second() == 2);
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-	gt::mutable_tree expect{ { 1 }, {
+	gt::mutable_tree expect{ {}, {
+		gt::mutable_tree{ {1} },
 		gt::mutable_tree{ {2} }
 	}}, result;
 
-	value_container vc;
-	vc.value(1);
-	vc.container({2});
-	BOOST_TEST(!gt::encode(vc, result));
+	my_pair p;
+	p.first(1);
+	p.second(2);
+	BOOST_TEST(!gt::encode(p, result));
 
 	BOOST_CHECK(result == expect);
 }
-
-BOOST_AUTO_TEST_SUITE_END() // ValueContainer
-
-BOOST_AUTO_TEST_SUITE(ValueGeneral)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ { 1 }, {
-		gt::mutable_tree{ {2} }
-	}};
-
-	value_value vv;
-	BOOST_TEST(!gt::decode(tr, vv));
-
-	BOOST_TEST(vv.first() == 1);
-	BOOST_TEST(vv.second() == 2);
-}
-
-BOOST_AUTO_TEST_CASE(DecodeValueFails)
-{
-	gt::mutable_tree tr{ { 1, 2, 3, 4, 5 }, {
-		gt::mutable_tree{ {2} }
-	}};
-
-	value_value vv;
-	BOOST_TEST(gt::decode(tr, vv));
-}
-
-BOOST_AUTO_TEST_CASE(DecodeGeneralFails)
-{
-	gt::mutable_tree tr{ { 1 }, {
-		gt::mutable_tree{ {2, 3, 4, 5, 6} }
-	}};
-
-	value_value vv;
-	BOOST_TEST(gt::decode(tr, vv));
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ { 1 }, {
-		gt::mutable_tree{ {2} }
-	}}, result;
-
-	value_value vv;
-	vv.first(1);
-	vv.second(2);
-	BOOST_TEST(!gt::encode(vv, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // ValueGeneral
-
-BOOST_AUTO_TEST_SUITE(ContainerValue)
-
-BOOST_AUTO_TEST_CASE(Decode)
-{
-	gt::mutable_tree tr{ { 2 }, {
-		gt::mutable_tree{ {1} }
-	}};
-
-	container_value cv;
-	BOOST_TEST(!gt::decode(tr, cv));
-
-	BOOST_TEST(cv.container()[0] == 1);
-	BOOST_TEST(cv.value() == 2);
-}
-
-BOOST_AUTO_TEST_CASE(DecodeContainerFails)
-{
-	gt::mutable_tree tr{ { 2 }, {
-		gt::mutable_tree{ {1, 2, 3, 4, 5 } }
-	}};
-
-	container_value cv;
-	BOOST_TEST(gt::decode(tr, cv));
-}
-
-BOOST_AUTO_TEST_CASE(DecodeValueFails)
-{
-	gt::mutable_tree tr{ { 2, 3, 4, 5, 6 }, {
-		gt::mutable_tree{ {1} }
-	}};
-
-	container_value cv;
-	BOOST_TEST(gt::decode(tr, cv));
-}
-
-BOOST_AUTO_TEST_CASE(Encode)
-{
-	gt::mutable_tree expect{ { 2 }, {
-		gt::mutable_tree{ {1} }
-	}}, result;
-
-	container_value cv;
-	cv.container({1});
-	cv.value(2);
-	BOOST_TEST(!gt::encode(cv, result));
-
-	BOOST_CHECK(result == expect);
-}
-
-BOOST_AUTO_TEST_SUITE_END() // ContainerValue
 
 BOOST_AUTO_TEST_SUITE_END() // Pair
 

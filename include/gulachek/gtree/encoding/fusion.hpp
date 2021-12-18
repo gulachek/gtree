@@ -20,21 +20,6 @@ namespace gulachek::gtree
 		private:
 			static constexpr bool uses_value_()
 			{
-				using namespace boost::fusion::result_of;
-
-				constexpr auto n = size<T>::value;
-
-				if constexpr (n == 2)
-				{
-					using left_it = typename begin<T>::type;
-					using left = typename value_of<left_it>::type;
-					using right_it = typename next<left_it>::type;
-					using right = typename value_of<right_it>::type;
-
-					return is_pure_value<left>::value ||
-						is_pure_value<right>::value;
-				}
-				
 				return false;
 			}
 
@@ -221,29 +206,8 @@ namespace gulachek::gtree
 
 				auto first = begin(seq);
 
-				using first_type =
-					typename result_of::begin<seq_t>::type;
-
-				if constexpr (n == 2)
-				{
-					using one_t = typename result_of::value_of<first_type>::type;
-					one_t f = *first;
-
-					using second_type =
-						typename result_of::next<first_type>::type;
-
-					auto second = next(first);
-
-					using two_t = typename result_of::value_of<second_type>::type;
-					two_t s = *second;
-
-					return __encode_pair(f, s, tree);
-				}
-				else
-				{
-					tree.child_count(n);
-					return __encode_seq<n, 0>(first, tree);
-				}
+				tree.child_count(n);
+				return __encode_seq<n, 0>(first, tree);
 			}
 
 			template <typename Tree, typename Sequence>
@@ -253,36 +217,12 @@ namespace gulachek::gtree
 				constexpr auto n = result_of::size<Sequence>::value;
 				auto first = begin(seq);
 
-				using first_type =
-					typename result_of::begin<Sequence>::type;
-
-				if constexpr (n == 2)
+				if (tree.child_count() < n)
 				{
-					auto second = next(first);
-
-					typename result_of::value_of<first_type>::type f{};
-					using second_type =
-						typename result_of::next<first_type>::type;
-
-					typename result_of::value_of<second_type>::type s{};
-
-					if (auto err = __decode_pair(tree, f, s))
-						return err;
-
-					*first = std::move(f);
-					*second = std::move(s);
-				}
-				else
-				{
-					if (tree.child_count() < n)
-					{
-						return {"not enough children"};
-					}
-
-					return __decode_seq<n, 0>(tree, first);
+					return {"not enough children"};
 				}
 
-				return {};
+				return __decode_seq<n, 0>(tree, first);
 			}
 
 	};
