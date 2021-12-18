@@ -38,23 +38,9 @@ BOOST_AUTO_TEST_SUITE(Tuple)
 
 BOOST_AUTO_TEST_SUITE(SingleElement)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsesValueSameAsUnderlying, T, test_types)
-{
-	auto expect = gt::uses_value<T>::value;
-	auto result = gt::uses_value<fusion::vector<T>>::value;
-	BOOST_TEST(expect == result);
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsesChildrenSameAsUnderlying, T, test_types)
-{
-	auto expect = gt::uses_children<T>::value;
-	auto result = gt::uses_children<fusion::vector<T>>::value;
-	BOOST_TEST(expect == result);
-}
-
 BOOST_AUTO_TEST_CASE(Encode)
 {
-	gt::mutable_tree expect{ { 25 } }, result;
+	gt::mutable_tree expect{ {}, {gt::mutable_tree{ { 25 } }} }, result;
 	fusion::vector<test_value> val{25};
 	BOOST_TEST(!gt::encode(val, result));
 
@@ -63,7 +49,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 
 BOOST_AUTO_TEST_CASE(Decode)
 {
-	gt::mutable_tree tr{ { 25 } };
+	gt::mutable_tree tr{ {}, {gt::mutable_tree{ { 25 }}} };
 	fusion::vector<test_value> val;
 
 	BOOST_TEST(!gt::decode(tr, val));
@@ -439,7 +425,7 @@ BOOST_AUTO_TEST_SUITE(SingleElement)
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-	gt::mutable_tree expect{ { 25 } }, result;
+	gt::mutable_tree expect{ {}, {gt::mutable_tree{ { 25 }}} }, result;
 	single val;
 	val.n(25);
 	BOOST_TEST(!gt::encode(val, result));
@@ -449,7 +435,7 @@ BOOST_AUTO_TEST_CASE(Encode)
 
 BOOST_AUTO_TEST_CASE(Decode)
 {
-	gt::mutable_tree tr{ { 25 } };
+	gt::mutable_tree tr{ {}, {gt::mutable_tree{ { 25 }}} };
 	single val;
 
 	BOOST_TEST(!gt::decode(tr, val));
@@ -457,9 +443,17 @@ BOOST_AUTO_TEST_CASE(Decode)
 	BOOST_TEST(val.n() == 25);
 }
 
-BOOST_AUTO_TEST_CASE(DecodeFails)
+BOOST_AUTO_TEST_CASE(NotEnoughChildrenFails)
 {
-	gt::mutable_tree tr{ { 25, 2, 3, 4, 5 } };
+	gt::mutable_tree tr;
+	single val;
+
+	BOOST_TEST(gt::decode(tr, val));
+}
+
+BOOST_AUTO_TEST_CASE(DecodeOfChildFails)
+{
+	gt::mutable_tree tr{ {}, {gt::mutable_tree{{ 25, 2, 3, 4, 5 } }}};
 	single val;
 
 	BOOST_TEST(gt::decode(tr, val));

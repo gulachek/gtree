@@ -24,13 +24,7 @@ namespace gulachek::gtree
 
 				constexpr auto n = size<T>::value;
 
-				if constexpr (n == 1)
-				{
-					using first = typename begin<T>::type;
-					using t = typename value_of<first>::type;
-					return gtree::uses_value<t>::value;
-				}
-				else if constexpr (n == 2)
+				if constexpr (n == 2)
 				{
 					using left_it = typename begin<T>::type;
 					using left = typename value_of<left_it>::type;
@@ -46,17 +40,6 @@ namespace gulachek::gtree
 
 			static constexpr bool uses_children_()
 			{
-				using namespace boost::fusion::result_of;
-
-				constexpr auto n = size<T>::value;
-
-				if constexpr (n == 1)
-				{
-					using first = typename begin<T>::type;
-					using t = typename value_of<first>::type;
-					return gtree::uses_children<t>::value;
-				}
-
 				return true;
 			}
 
@@ -241,13 +224,7 @@ namespace gulachek::gtree
 				using first_type =
 					typename result_of::begin<seq_t>::type;
 
-				if constexpr (n == 1)
-				{
-					using result_t = typename result_of::value_of<first_type>::type;
-					result_t f = *first;
-					return gtree::encode(f, tree);
-				}
-				else if constexpr (n == 2)
+				if constexpr (n == 2)
 				{
 					using one_t = typename result_of::value_of<first_type>::type;
 					one_t f = *first;
@@ -279,15 +256,7 @@ namespace gulachek::gtree
 				using first_type =
 					typename result_of::begin<Sequence>::type;
 
-				if constexpr (n == 1)
-				{
-					typename result_of::value_of<first_type>::type f{};
-					if (auto err = gtree::decode(tree, f))
-						return err;
-
-					*first = std::move(f);
-				}
-				else if constexpr (n == 2)
+				if constexpr (n == 2)
 				{
 					auto second = next(first);
 
@@ -305,6 +274,11 @@ namespace gulachek::gtree
 				}
 				else
 				{
+					if (tree.child_count() < n)
+					{
+						return {"not enough children"};
+					}
+
 					return __decode_seq<n, 0>(tree, first);
 				}
 
