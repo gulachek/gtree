@@ -1,27 +1,17 @@
 #ifndef GULACHEK_GTREE_ENCODING_CLASS_HPP
 #define GULACHEK_GTREE_ENCODING_CLASS_HPP
 
-#include <boost/mpl/set.hpp>
 #include "gulachek/gtree/encoding/encoding.hpp"
 
 #include <type_traits>
 
 namespace gulachek::gtree
 {
-	// Use this to encode your class/struct from raw trees
-	struct value_encoding {};
-	struct container_encoding {};
-	struct hybrid_encoding {};
-
-	using __manual_encodings = boost::mpl::set<
-		value_encoding,
-		container_encoding,
-		hybrid_encoding
-		>;
+	struct manual_encoding {};
 
 	template <typename T>
 	struct encoding<T,
-		std::enable_if_t<!boost::mpl::has_key<__manual_encodings, typename T::gtree_encoding>::value, void>>
+		std::enable_if_t<!std::is_same<manual_encoding, typename T::gtree_encoding>::value, void>>
 	{
 		using type = T;
 		using src_t = typename type::gtree_encoding;
@@ -51,10 +41,9 @@ namespace gulachek::gtree
 
 	template <typename T>
 	struct encoding<T,
-		std::enable_if_t<boost::mpl::has_key<__manual_encodings, typename T::gtree_encoding>::value, void>>
+		std::enable_if_t<std::is_same<manual_encoding, typename T::gtree_encoding>::value, void>>
 	{
 		using type = T;
-		using archetype = typename type::gtree_encoding;
 
 		template <typename MutableTree, typename ForwardRef>
 		static error encode(ForwardRef &&val, MutableTree &tree)
