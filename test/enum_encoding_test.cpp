@@ -26,18 +26,6 @@ enum unscoped_enum : std::uint8_t
 	two
 };
 
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	BOOST_TEST(gt::uses_value<scoped_enum>::value);
-	BOOST_TEST(gt::uses_value<unscoped_enum>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoChildren)
-{
-	BOOST_TEST(!gt::uses_children<scoped_enum>::value);
-	BOOST_TEST(!gt::uses_children<unscoped_enum>::value);
-}
-
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr;

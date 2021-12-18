@@ -10,9 +10,6 @@ namespace gulachek::gtree
 	{
 		using type = std::pair<K,V>;
 
-		static constexpr bool uses_children = true;
-		static constexpr bool uses_value = false;
-
 		template <typename Tree>
 		static error decode(Tree &&tree, type &pair)
 		{

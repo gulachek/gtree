@@ -23,16 +23,11 @@ namespace gulachek::gtree
 	template <typename T>
 	struct encoding_t : encoding<std::decay_t<T>> {};
 
-	template <bool Anything>
-	constexpr bool constexpr_bool = Anything;
-
 	// can I enforce constexpr? these
 	template <typename T>
 	concept Encoding =
 	requires(tree tr, mutable_tree mtr, typename T::type val)
 	{
-		{ constexpr_bool<T::uses_value> };
-		{ constexpr_bool<T::uses_children> };
 		{ T::encode(val, mtr) } -> std::same_as<error>;
 		{ T::encode(std::move(val), mtr) } -> std::same_as<error>;
 		{ T::decode(tr, val) } -> std::same_as<error>;
@@ -48,32 +43,6 @@ namespace gulachek::gtree
 
 	template <typename T>
 	concept Sertreealizable = Sertreealizable_<std::decay_t<T>>;
-
-	// Does the type's encoding ever have a value?
-	template <Sertreealizable T>
-	struct uses_value
-	{
-		static constexpr bool value = encoding_t<T>::uses_value;
-	};
-
-	template <Sertreealizable T>
-	struct is_pure_container
-	{
-		static constexpr bool value = !uses_value<T>::value;
-	};
-
-	// Does the type's encoding ever have children?
-	template <Sertreealizable T>
-	struct uses_children
-	{
-		static constexpr bool value = encoding_t<T>::uses_children;
-	};
-
-	template <Sertreealizable T>
-	struct is_pure_value
-	{
-		static constexpr bool value = !uses_children<T>::value;
-	};
 
 	template <Sertreealizable T, MutableTree Tree>
 	error encode(const T &val, Tree &tr)

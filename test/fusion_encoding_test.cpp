@@ -100,16 +100,6 @@ typedef fusion::vector<
 	test_value
 	> three_vals;
 
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	BOOST_TEST(!gt::uses_value<three_vals>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	BOOST_TEST(gt::uses_children<three_vals>::value);
-}
-
 BOOST_AUTO_TEST_CASE(Encode)
 {
 	gt::mutable_tree expect{ {

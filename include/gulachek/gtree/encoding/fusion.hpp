@@ -18,115 +18,6 @@ namespace gulachek::gtree
 	class encoding<T, std::enable_if_t<boost::fusion::traits::is_sequence<T>::value, void>>
 	{
 		private:
-			static constexpr bool uses_value_()
-			{
-				return false;
-			}
-
-			static constexpr bool uses_children_()
-			{
-				return true;
-			}
-
-			template <typename MutableTree, typename Left, typename Right>
-			static error __encode_pair(Left &&left, Right &&right,
-					MutableTree &tree
-					)
-			{
-				if constexpr (is_pure_value<Left>::value)
-				{
-					if (auto err = gtree::encode(std::forward<Left>(left), tree))
-						return err;
-
-					if constexpr (is_pure_container<Right>::value)
-					{
-						if (auto err = gtree::encode(std::forward<Right>(right), tree))
-							return err;
-					}
-					else
-					{
-						tree.child_count(1);
-						if (auto err = gtree::encode(std::forward<Right>(right), tree.child(0)))
-							return err;
-					}
-				}
-				else if constexpr (is_pure_value<Right>::value)
-				{
-					if (auto err = gtree::encode(std::forward<Right>(right), tree))
-						return err;
-
-					if constexpr (is_pure_container<Left>::value)
-					{
-						if (auto err = gtree::encode(std::forward<Left>(left), tree))
-							return err;
-					}
-					else
-					{
-						tree.child_count(1);
-						if (auto err = gtree::encode(std::forward<Left>(left), tree.child(0)))
-							return err;
-					}
-				}
-				else
-				{
-					tree.child_count(2);
-					if (auto err = gtree::encode(std::forward<Left>(left), tree.child(0)))
-						return err;
-
-					if (auto err = gtree::encode(std::forward<Right>(right), tree.child(1)))
-						return err;
-				}
-
-				return {};
-			}
-
-			template <typename Tree, typename Left, typename Right>
-			static error __decode_pair(Tree &&tree, Left &left, Right &right)
-			{
-				if constexpr (is_pure_value<Left>::value)
-				{
-					if (auto err = gtree::decode(std::forward<Tree>(tree), left))
-						return err;
-
-					if constexpr (is_pure_container<Right>::value)
-					{
-						if (auto err = gtree::decode(std::forward<Tree>(tree), right))
-							return err;
-					}
-					else
-					{
-						if (auto err = gtree::decode(tree.child(0), right))
-							return err;
-					}
-				}
-				else if constexpr (is_pure_value<Right>::value)
-				{
-					if (auto err = gtree::decode(std::forward<Tree>(tree), right))
-						return err;
-
-					if constexpr (is_pure_container<Left>::value)
-					{
-						if (auto err = gtree::decode(std::forward<Tree>(tree), left))
-							return err;
-					}
-					else
-					{
-						if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), left))
-							return err;
-					}
-				}
-				else
-				{
-					if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), left))
-						return err;
-
-					if (auto err = gtree::decode(std::forward<Tree>(tree).child(1), right))
-						return err;
-				}
-
-				return {};
-			}
-
 			template <
 				std::size_t size,
 				std::size_t index,
@@ -194,8 +85,6 @@ namespace gulachek::gtree
 
 		public:
 			using type = T;
-			static constexpr bool uses_value = uses_value_();
-			static constexpr bool uses_children = uses_children_();
 
 			template <typename MutableTree, typename Sequence>
 			static error encode(Sequence &&seq, MutableTree &tree)

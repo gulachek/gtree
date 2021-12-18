@@ -149,9 +149,6 @@ namespace gulachek::gtree
 
 			return decode_<types>(std::forward<Tree>(tree), val, index);
 		}
-
-		static constexpr bool uses_value = true;
-		static constexpr bool uses_children = true;
 	};
 }
 

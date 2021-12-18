@@ -18,24 +18,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	BOOST_TEST(!gt::uses_value<std::vector<unsigned int>>::value);
-	BOOST_TEST(!gt::uses_value<std::vector<std::string>>::value);
-
-	std::variant<int, float, std::vector<std::string>> var;
-	bool test = !gt::uses_value<
-			typename std::variant_alternative<2, decltype(var)>::type
-			>::value;
-
-	BOOST_TEST(test);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	BOOST_TEST(gt::uses_children<std::vector<unsigned int>>::value);
-}
-
 BOOST_AUTO_TEST_CASE(DecodeEmpty)
 {
 	gt::mutable_tree tr;

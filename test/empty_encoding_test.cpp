@@ -20,17 +20,6 @@ class empty {};
 template <>
 struct gt::empty_encoding<empty> { using type = empty; };
 
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	typename gt::empty_encoding<empty>::type e;
-	BOOST_TEST(!gt::uses_value<empty>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoChildren)
-{
-	BOOST_TEST(!gt::uses_children<empty>::value);
-}
-
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr;

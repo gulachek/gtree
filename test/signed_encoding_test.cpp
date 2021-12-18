@@ -22,16 +22,6 @@ typedef std::tuple<
 	std::int64_t
 	> signed_types;
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsesValue, T, signed_types)
-{
-	BOOST_TEST(gt::uses_value<T>::value);
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(NoChildren, T, signed_types)
-{
-	BOOST_TEST(!gt::uses_children<T>::value);
-}
-
 BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 {
 	gt::mutable_tree pos{ {25} };

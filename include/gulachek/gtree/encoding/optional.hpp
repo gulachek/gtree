@@ -12,9 +12,6 @@ namespace gulachek::gtree
 		using type = std::optional<U>;
 		using value_type = typename type::value_type;
 
-		static constexpr bool uses_value = false;
-		static constexpr bool uses_children = true;
-
 		template <typename Opt, typename Tree>
 		static error encode(Opt &&val, Tree &tree)
 		{

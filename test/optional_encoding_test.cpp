@@ -17,16 +17,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	BOOST_TEST(!gt::uses_value<std::optional<std::size_t>>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	BOOST_TEST(gt::uses_children<std::optional<std::size_t>>::value);
-}
-
 BOOST_AUTO_TEST_CASE(DecodeNullopt)
 {
 	gt::mutable_tree tr;

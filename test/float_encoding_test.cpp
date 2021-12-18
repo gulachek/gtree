@@ -15,16 +15,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	BOOST_TEST(gt::uses_value<float>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoChildren)
-{
-	BOOST_TEST(!gt::uses_children<float>::value);
-}
-
 BOOST_AUTO_TEST_CASE(LessThan4BytesError)
 {
 	gt::mutable_tree in{ {0, 0, 1} };

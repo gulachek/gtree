@@ -13,9 +13,6 @@ namespace gulachek::gtree
 	{
 		using type = std::map<K,V,C,A>;
 
-		static constexpr bool uses_value = false;
-		static constexpr bool uses_children = true;
-
 		template <typename Map, MutableTree Tree>
 		static error encode(Map &&val, Tree &tree)
 		{

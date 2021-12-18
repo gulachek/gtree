@@ -16,9 +16,6 @@ namespace gulachek::gtree
 	{
 		using type = U;
 
-		static constexpr bool uses_value = false;
-		static constexpr bool uses_children = false;
-
 		template <typename T, typename MutableTree>
 		static error encode(T &&val, MutableTree &tree)
 		{

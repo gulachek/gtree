@@ -12,9 +12,6 @@ namespace gulachek::gtree
 	{
 		using type = std::vector<T, Allocator>;
 
-		static constexpr bool uses_value = false;
-		static constexpr bool uses_children = true;
-
 		// Vectors parse children sequentially
 		template <typename Vec, typename MutableTree>
 		static error encode(

@@ -22,16 +22,6 @@ typedef std::tuple<
 	std::uint64_t
 	> unsigned_types;
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsesValue, T, unsigned_types)
-{
-	BOOST_TEST(gt::uses_value<T>::value);
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(NoChildren, T, unsigned_types)
-{
-	BOOST_TEST(!gt::uses_children<T>::value);
-}
-
 BOOST_AUTO_TEST_CASE(DecodeSingleByte)
 {
 	gt::mutable_tree in{ {25} };

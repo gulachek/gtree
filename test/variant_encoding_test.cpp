@@ -30,18 +30,6 @@ BOOST_AUTO_TEST_CASE(MetaConsCanFindTypeIndex)
 	BOOST_TEST(i2 == 2);
 }
 
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	using my_var = std::variant<std::size_t, std::string>;
-	BOOST_TEST(gt::uses_value<my_var>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	using my_var = std::variant<std::size_t, std::string>;
-	BOOST_TEST(gt::uses_children<my_var>::value);
-}
-
 typedef std::variant<std::size_t, std::string, std::vector<std::string>> UintStrVec; 
 
 BOOST_AUTO_TEST_CASE(DecodeValueType)

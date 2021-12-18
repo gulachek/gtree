@@ -13,9 +13,6 @@ namespace gulachek::gtree
 		using type = T;
 		using underlying_t = std::underlying_type_t<type>;
 
-		static constexpr bool uses_value = gtree::uses_value<underlying_t>::value;
-		static constexpr bool uses_children = gtree::uses_children<underlying_t>::value;
-
 		template <
 			typename U,
 			typename Tree

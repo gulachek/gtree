@@ -17,33 +17,6 @@ namespace bd = boost::unit_test::data;
 
 namespace gt = gulachek::gtree;
 
-typedef std::uint16_t value_type;
-typedef std::vector<std::uint16_t> container_type;
-
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	using t = std::shared_ptr<value_type>;
-	BOOST_TEST(gt::uses_value<t>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	using t = std::shared_ptr<container_type>;
-	BOOST_TEST(!gt::uses_value<t>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoChildren)
-{
-	using t = std::shared_ptr<value_type>;
-	BOOST_TEST(!gt::uses_children<t>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	using t = std::shared_ptr<container_type>;
-	BOOST_TEST(gt::uses_children<t>::value);
-}
-
 BOOST_AUTO_TEST_CASE(DecodeValueType)
 {
 	std::uint16_t n = 12;

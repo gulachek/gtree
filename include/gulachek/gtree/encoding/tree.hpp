@@ -13,9 +13,6 @@ namespace gulachek::gtree
 	{
 		using type = U;
 
-		static constexpr bool uses_value = true;
-		static constexpr bool uses_children = true;
-
 		// optimize this later to check to see if trees are
 		// same type
 		template <typename T, typename MutableTree>

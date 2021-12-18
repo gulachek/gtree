@@ -12,9 +12,6 @@ namespace gulachek::gtree
 	{
 		using type = std::set<T>;
 
-		static constexpr bool uses_value = false;
-		static constexpr bool uses_children = true;
-
 		template <typename Set, typename MutableTree>
 		static error encode(Set &&set, MutableTree &tree)
 		{

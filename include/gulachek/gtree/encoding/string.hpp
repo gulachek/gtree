@@ -13,9 +13,6 @@ namespace gulachek::gtree
 	{
 		using type = std::string;
 
-		static constexpr bool uses_value = true;
-		static constexpr bool uses_children = false;
-
 		// Strings are simply strings of bytes
 		// Not generalized to basic_string because of encoding issues
 		template <typename String, typename MutableTree>

@@ -12,9 +12,6 @@ namespace gulachek::gtree
 		using type = std::shared_ptr<T>;
 		using value_type = T;
 
-		static constexpr bool uses_value = gtree::uses_value<value_type>::value;
-		static constexpr bool uses_children = gtree::uses_children<value_type>::value;
-
 		template <typename Tree>
 		static error decode(Tree &&tr, type &val)
 		{

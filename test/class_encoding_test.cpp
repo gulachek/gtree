@@ -45,36 +45,6 @@ struct foo
 	}
 };
 
-BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesValue)
-{
-	struct container {
-		using gtree_encoding = std::vector<std::size_t>;
-		std::vector<std::size_t> v;
-	};
-
-	struct value {
-		using gtree_encoding = std::size_t;
-		std::size_t n;
-	};
-
-	BOOST_TEST(gt::uses_value<value>::value);
-	BOOST_TEST(!gt::uses_value<container>::value);
-}
-
-BOOST_AUTO_TEST_CASE(TypeTraitCopiesUsesChildren)
-{
-	struct container {
-		using gtree_encoding = std::vector<std::size_t>;
-	};
-
-	struct value {
-		using gtree_encoding = std::size_t;
-	};
-
-	BOOST_TEST(!gt::uses_children<value>::value);
-	BOOST_TEST(gt::uses_children<container>::value);
-}
-
 BOOST_AUTO_TEST_CASE(Decode)
 {
 	gt::mutable_tree tr{ {10} };
@@ -147,16 +117,6 @@ class val
 		int _n;
 };
 
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	BOOST_TEST(gt::uses_value<val>::value);
-}
-
-BOOST_AUTO_TEST_CASE(NoChildren)
-{
-	BOOST_TEST(!gt::uses_children<val>::value);
-}
-
 BOOST_AUTO_TEST_CASE(Encode)
 {
 	gt::mutable_tree expect{ {10} }, result;
@@ -205,16 +165,6 @@ class cont
 	private:
 		std::vector<std::uint16_t> _v;
 };
-
-BOOST_AUTO_TEST_CASE(NoValue)
-{
-	BOOST_TEST(!gt::uses_value<cont>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	BOOST_TEST(gt::uses_children<cont>::value);
-}
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
@@ -291,16 +241,6 @@ class hybrid
 		std::uint16_t _n;
 		std::vector<std::uint16_t> _v;
 };
-
-BOOST_AUTO_TEST_CASE(UsesValue)
-{
-	BOOST_TEST(gt::uses_value<hybrid>::value);
-}
-
-BOOST_AUTO_TEST_CASE(UsesChildren)
-{
-	BOOST_TEST(gt::uses_children<hybrid>::value);
-}
 
 BOOST_AUTO_TEST_CASE(Encode)
 {

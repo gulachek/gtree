@@ -19,16 +19,6 @@ namespace gulachek::gtree
 		hybrid_encoding
 		>;
 
-	using __manual_uses_value = boost::mpl::set<
-		value_encoding,
-		hybrid_encoding
-		>;
-
-	using __manual_uses_children = boost::mpl::set<
-		container_encoding,
-		hybrid_encoding
-		>;
-
 	template <typename T>
 	struct encoding<T,
 		std::enable_if_t<!boost::mpl::has_key<__manual_encodings, typename T::gtree_encoding>::value, void>>
@@ -57,9 +47,6 @@ namespace gulachek::gtree
 
 			return val.gtree_decode(std::move(temp));
 		}
-
-		static constexpr bool uses_value = gtree::uses_value<src_t>::value;
-		static constexpr bool uses_children = gtree::uses_children<src_t>::value;
 	};
 
 	template <typename T>
@@ -80,9 +67,6 @@ namespace gulachek::gtree
 		{
 			return val.gtree_decode(std::forward<Tree>(tree));
 		}
-
-		static constexpr bool uses_value = boost::mpl::has_key<__manual_uses_value, archetype>::value;
-		static constexpr bool uses_children = boost::mpl::has_key<__manual_uses_children, archetype>::value;
 	};
 }
 
