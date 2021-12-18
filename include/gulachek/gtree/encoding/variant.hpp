@@ -78,15 +78,8 @@ namespace gulachek::gtree
 				auto &&ref = var_encoding::
 					template get<type>(std::forward<V>(var));
 
-				if constexpr (gtree::uses_value<type>::value)
-				{
-					tree.child_count(1);
-					return gtree::encode(std::forward<type>(ref), tree.child(0));
-				}
-				else
-				{
-					return gtree::encode(std::forward<type>(ref), tree);
-				}
+				tree.child_count(1);
+				return gtree::encode(std::forward<type>(ref), tree.child(0));
 			}
 
 			if constexpr (Types::has_next)
@@ -124,12 +117,8 @@ namespace gulachek::gtree
 			{
 				type elem;
 
-				// No need for indirection if no value is in the way
-				error err;
-				if constexpr (gtree::uses_value<type>::value)
-					err = gtree::decode(std::forward<Tree>(tree).child(0), elem);
-				else
-					err = gtree::decode(std::forward<Tree>(tree), elem);
+				error err =
+					gtree::decode(std::forward<Tree>(tree).child(0), elem);
 
 				if (err) return err;
 				val = std::move(elem);

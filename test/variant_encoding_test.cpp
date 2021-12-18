@@ -72,10 +72,10 @@ BOOST_AUTO_TEST_CASE(DecodeSecondValueType)
 
 BOOST_AUTO_TEST_CASE(DecodeValuelessType)
 {
-	gt::mutable_tree tr{ {2}, {
+	gt::mutable_tree tr{ {2}, {gt::mutable_tree{{}, {
 		gt::mutable_tree{ { 'h', 'e', 'l', 'l', 'o' } },
 		gt::mutable_tree{ { 'w', 'o', 'r', 'l', 'd' } }
-	}};
+	}}}};
 
 	UintStrVec var;
 	BOOST_TEST(!gt::decode(tr, var));
