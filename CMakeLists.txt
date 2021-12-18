@@ -27,7 +27,6 @@ add_library(${core}
 	src/gtree.cpp
 	src/twos_complement.cpp
 	src/error.cpp
-	src/optimization_type.cpp
 	)
 
 target_include_directories(${core} PUBLIC
