@@ -13,32 +13,6 @@
 
 namespace gulachek::gtree
 {
-	template <typename T>
-	concept user_defined_codeable =
-		std::is_integral_v<T> || std::is_enum_v<T>;
-
-	class user_defined_code
-	{
-		public:
-			template <user_defined_codeable T = std::size_t>
-			user_defined_code(T c = T{}) :
-				c_{(std::size_t)c}
-			{}
-
-			template <user_defined_codeable T>
-			bool operator == (const T &rhs) const
-			{ return c_ == (std::size_t)rhs; }
-
-			operator bool () const
-			{ return c_; }
-
-			std::size_t value() const
-			{ return c_; }
-
-		private:
-			std::size_t c_;
-	};
-
 	class cause
 	{
 		enum class standard_code
@@ -55,7 +29,8 @@ namespace gulachek::gtree
 				ss_{desc}
 			{}
 
-			template <user_defined_codeable T>
+			template <typename T> requires
+				std::is_constructible_v<std::size_t, T>
 			cause(T ucode, std::string desc = "") :
 				code_{standard_code::generic},
 				ucode_{ucode},
@@ -83,7 +58,7 @@ namespace gulachek::gtree
 				return out;
 			}
 
-			user_defined_code ucode() const
+			std::size_t ucode() const
 			{ return ucode_; }
 
 			template <typename T>
@@ -106,7 +81,7 @@ namespace gulachek::gtree
 
 		private:
 			standard_code code_;
-			user_defined_code ucode_;
+			std::size_t ucode_;
 			std::stringstream ss_;
 			std::vector<cause> causes_;
 	};
@@ -117,7 +92,7 @@ namespace gulachek::gtree
 	template <typename T>
 	struct decoding {};
 
-	enum class read_error
+	enum read_error
 	{
 		incomplete_value_size = 1,
 		incomplete_value,
