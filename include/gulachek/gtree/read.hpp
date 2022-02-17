@@ -29,7 +29,6 @@ namespace gulachek::gtree
 		bad_children
 	};
 
-
 	class child_reader
 	{
 		public:
@@ -43,7 +42,7 @@ namespace gulachek::gtree
 				decoding<Decodable> dec{target};
 
 				std::size_t nbytes;
-				if (auto err = read_num(is_, &nbytes))
+				if (auto err = read_base128(is_, &nbytes))
 				{
 					if (err.is_eof())
 						return err;
@@ -75,7 +74,7 @@ namespace gulachek::gtree
 				}
 
 				std::size_t nchildren;
-				if (auto err = read_num(is_, &nchildren))
+				if (auto err = read_base128(is_, &nchildren))
 				{
 					cause wrap{read_error::incomplete_child_count};
 					wrap << "error reading child count";

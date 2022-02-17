@@ -8,7 +8,7 @@
 
 namespace gulachek::gtree
 {
-	cause read_num(std::istream &is, std::size_t *n)
+	cause read_base128(std::istream &is, std::size_t *n)
 	{
 		*n = 0;
 		std::size_t power = 1;
