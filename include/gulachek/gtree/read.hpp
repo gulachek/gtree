@@ -9,26 +9,62 @@
 #include <string>
 #include <span>
 #include <cstdint>
+#include <ostream>
 
 namespace gulachek::gtree
 {
-	enum class standard_code
+	template <typename T>
+	concept user_defined_codeable =
+		std::is_integral_v<T> || std::is_enum_v<T>;
+
+	class user_defined_code
 	{
-		generic,
-		eof,
-		stub // (not implemented)
+		public:
+			template <user_defined_codeable T = std::size_t>
+			user_defined_code(T c = T{}) :
+				c_{(std::size_t)c}
+			{}
+
+			template <user_defined_codeable T>
+			bool operator == (const T &rhs) const
+			{ return c_ == (std::size_t)rhs; }
+
+			operator bool () const
+			{ return c_; }
+
+			std::size_t value() const
+			{ return c_; }
+
+		private:
+			std::size_t c_;
 	};
 
 	class cause
 	{
+		enum class standard_code
+		{
+			generic,
+			eof,
+			stub // (not implemented)
+		};
+
 		public:
 			cause(std::string desc = "") :
 				code_{standard_code::generic},
+				ucode_{},
+				ss_{desc}
+			{}
+
+			template <user_defined_codeable T>
+			cause(T ucode, std::string desc = "") :
+				code_{standard_code::generic},
+				ucode_{ucode},
 				ss_{desc}
 			{}
 
 			cause(const cause &other) :
 				code_{other.code_},
+				ucode_{other.ucode_},
 				ss_{other.ss_.str()},
 				causes_{other.causes_}
 			{}
@@ -36,6 +72,7 @@ namespace gulachek::gtree
 			operator bool () const
 			{
 				return (code_ != standard_code::generic) ||
+					ucode_ ||
 					ss_.str().size();
 			}
 
@@ -45,6 +82,9 @@ namespace gulachek::gtree
 				out.code_ = standard_code::eof;
 				return out;
 			}
+
+			user_defined_code ucode() const
+			{ return ucode_; }
 
 			template <typename T>
 			cause& format(const T &rhs)
@@ -66,6 +106,7 @@ namespace gulachek::gtree
 
 		private:
 			standard_code code_;
+			user_defined_code ucode_;
 			std::stringstream ss_;
 			std::vector<cause> causes_;
 	};
@@ -75,6 +116,14 @@ namespace gulachek::gtree
 
 	template <typename T>
 	struct decoding {};
+
+	enum class read_error
+	{
+		incomplete_value_size = 1,
+		incomplete_value,
+		incomplete_child_count,
+		bad_children
+	};
 
 	cause read_num(std::istream &is, std::size_t *n)
 	{
@@ -129,7 +178,7 @@ namespace gulachek::gtree
 					if (err.is_eof())
 						return err;
 
-					cause wrap;
+					cause wrap{read_error::incomplete_value_size};
 					wrap << "error reading value size";
 					wrap.add_cause(err);
 					return wrap;
@@ -141,7 +190,7 @@ namespace gulachek::gtree
 				auto read_count = is_.gcount();
 				if (read_count != nbytes)
 				{
-					cause err;
+					cause err{read_error::incomplete_value};
 					err << "reading tree value expected " << nbytes <<
 						" bytes, actual: " << read_count;
 					return err;
@@ -158,7 +207,7 @@ namespace gulachek::gtree
 				std::size_t nchildren;
 				if (auto err = read_num(is_, &nchildren))
 				{
-					cause wrap;
+					cause wrap{read_error::incomplete_child_count};
 					wrap << "error reading child count";
 					wrap.add_cause(err);
 					return wrap;
@@ -167,7 +216,7 @@ namespace gulachek::gtree
 				// handle each child
 				if (auto err = dec.children(nchildren, *this))
 				{
-					cause wrap{"handling tree children"};
+					cause wrap{read_error::bad_children, "handling tree children"};
 					wrap.add_cause(err);
 					return wrap;
 				}

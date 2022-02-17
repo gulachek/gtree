@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE TreeTest
+#define BOOST_TEST_MODULE ReadTest
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -55,6 +55,18 @@ BOOST_AUTO_TEST_CASE(AbcValue)
 	BOOST_TEST(tr.child_count() == 0);
 }
 
+BOOST_AUTO_TEST_CASE(IncompleteValueSizeIsError)
+{
+	std::vector<std::uint8_t> buf = {128};
+	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+
+	gt::tree tr;
+	auto err = gt::read(is, &tr);
+
+	BOOST_TEST(!!err);
+	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_value_size);
+}
+
 BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
 {
 	std::vector<std::uint8_t> buf = {3, 'a', 'b'};
@@ -64,19 +76,7 @@ BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(!err.is_eof());
-}
-
-BOOST_AUTO_TEST_CASE(IncompleteDataSizeIsError)
-{
-	std::vector<std::uint8_t> buf = {128};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
-
-	gt::tree tr;
-	auto err = gt::read(is, &tr);
-
-	BOOST_TEST(!!err);
-	BOOST_TEST(!err.is_eof());
+	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_value);
 }
 
 BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(!err.is_eof());
+	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_child_count);
 }
 
 BOOST_AUTO_TEST_CASE(MissingChildIsError)
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(MissingChildIsError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(!err.is_eof());
+	BOOST_CHECK(err.ucode() == gt::read_error::bad_children);
 }
 
 BOOST_AUTO_TEST_CASE(AbcChildren)
