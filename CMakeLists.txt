@@ -19,7 +19,7 @@ elseif(UNIX)
 endif()
 
 add_library(${core}
-	src/error.cpp
+	src/base128.cpp
 	)
 
 target_include_directories(${core} PUBLIC
