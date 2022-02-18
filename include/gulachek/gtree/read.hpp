@@ -21,7 +21,7 @@ namespace gulachek::gtree
 	template <typename T>
 	struct decoding {};
 
-	enum read_error
+	enum class read_error
 	{
 		incomplete_value_size = 1,
 		incomplete_value,

@@ -4,11 +4,12 @@
 #include <gulachek/cause.hpp>
 
 #include <istream>
+#include <ostream>
 #include <cstddef>
 
 namespace gulachek::gtree
 {
-	enum read_base128_error
+	enum class read_base128_error
 	{
 		incomplete = 1,
 		bad_stream,
@@ -16,6 +17,13 @@ namespace gulachek::gtree
 	};
 
 	cause read_base128(std::istream &is, std::size_t *n);
+
+	enum class write_base128_error
+	{
+		bad_stream = 1
+	};
+
+	cause write_base128(std::ostream &os, std::size_t n);
 }
 
 #endif

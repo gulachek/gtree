@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(IncompleteIsError)
 	auto err = gt::read_base128(ss, &n);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(err.ucode() == gt::read_base128_error::incomplete);
+	BOOST_TEST(err.has_ucode(gt::read_base128_error::incomplete));
 }
 
 BOOST_AUTO_TEST_CASE(BadStreamIsError)
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(BadStreamIsError)
 	auto err = gt::read_base128(ss, &n);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(err.ucode() == gt::read_base128_error::bad_stream);
+	BOOST_TEST(err.has_ucode(gt::read_base128_error::bad_stream));
 }
 
 BOOST_AUTO_TEST_CASE(MaxValIsNotError)
@@ -90,5 +90,39 @@ BOOST_AUTO_TEST_CASE(OverflowIsError)
 	auto err = gt::read_base128(ss, &n);
 
 	BOOST_TEST(!!err);
-	BOOST_TEST(err.ucode() == gt::read_base128_error::overflow);
+	BOOST_TEST(err.has_ucode(gt::read_base128_error::overflow));
+}
+
+BOOST_AUTO_TEST_CASE(WriteSingleByte)
+{
+	std::size_t n = 0x0a;
+
+	std::ostringstream ss;
+	auto err = gt::write_base128(ss, n);
+
+	BOOST_TEST(!err);
+	BOOST_TEST(ss.str() == "\x0a");
+}
+
+BOOST_AUTO_TEST_CASE(WriteMultiByte)
+{
+	std::size_t n = 257;
+
+	std::ostringstream ss;
+	auto err = gt::write_base128(ss, n);
+
+	BOOST_TEST(!err);
+	BOOST_TEST(ss.str() == "\x81\x02");
+}
+
+BOOST_AUTO_TEST_CASE(WriteBadStreamIsError)
+{
+	std::size_t n = 257;
+
+	std::ostringstream ss;
+	ss.setstate(std::ios::badbit);
+	auto err = gt::write_base128(ss, n);
+
+	BOOST_CHECK(err);
+	BOOST_TEST(err.has_ucode(gt::write_base128_error::bad_stream));
 }

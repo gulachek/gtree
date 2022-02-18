@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(IncompleteValueSizeIsError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_value_size);
+	BOOST_CHECK(err.has_ucode(gt::read_error::incomplete_value_size));
 }
 
 BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_value);
+	BOOST_CHECK(err.has_ucode(gt::read_error::incomplete_value));
 }
 
 BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_CHECK(err.ucode() == gt::read_error::incomplete_child_count);
+	BOOST_CHECK(err.has_ucode(gt::read_error::incomplete_child_count));
 }
 
 BOOST_AUTO_TEST_CASE(MissingChildIsError)
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(MissingChildIsError)
 	auto err = gt::read(is, &tr);
 
 	BOOST_TEST(!!err);
-	BOOST_CHECK(err.ucode() == gt::read_error::bad_children);
+	BOOST_CHECK(err.has_ucode(gt::read_error::bad_children));
 }
 
 BOOST_AUTO_TEST_CASE(AbcChildren)

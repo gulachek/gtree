@@ -47,4 +47,19 @@ namespace gulachek::gtree
 		*n += (power * b);
 		return {};
 	}
+
+	cause write_base128(std::ostream &os, std::size_t n)
+	{
+		while (n > 127)
+		{
+			auto b = n % 128;
+			n /= 128;
+			os.put(0x80 | b);
+		}
+
+		if (!os.put(n))
+			return {write_base128_error::bad_stream, "bad_stream"};
+
+		return {};
+	}
 }

@@ -7,6 +7,12 @@
 
 namespace gulachek
 {
+	template <typename T>
+	concept user_defined_codeable = requires (T val)
+	{
+		{static_cast<std::size_t>(val)};
+	};
+
 	class cause
 	{
 		enum class standard_code
@@ -23,11 +29,10 @@ namespace gulachek
 				ss_{desc}
 			{}
 
-			template <typename T> requires
-				std::is_constructible_v<std::size_t, T>
+			template <user_defined_codeable T>
 			cause(T ucode, const char* desc = "") :
 				code_{standard_code::generic},
-				ucode_{ucode},
+				ucode_{static_cast<std::size_t>(ucode)},
 				ss_{desc}
 			{}
 
@@ -52,8 +57,9 @@ namespace gulachek
 				return out;
 			}
 
-			std::size_t ucode() const
-			{ return ucode_; }
+			template <user_defined_codeable T>
+			bool has_ucode(T c) const
+			{ return ucode_ == static_cast<std::size_t>(c); }
 
 			template <typename T>
 			cause& format(const T &rhs)
