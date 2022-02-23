@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "gulachek/gtree/read.hpp"
+#include "gulachek/gtree/tree.hpp"
 #include <strstream>
 #include <sstream>
 #include <vector>

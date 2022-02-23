@@ -1,18 +1,24 @@
 #ifndef GULACHEK_GTREE_WRITE_HPP
 #define GULACHEK_GTREE_WRITE_HPP
 
-#include "gulachek/gtree/error.hpp"
-#include "gulachek/gtree/mutable_tree.hpp"
+#include "gulachek/gtree/base128.hpp"
+#include "gulachek/gtree/encoding.hpp"
+
+#include <gulachek/cause.hpp>
+
+#include <ostream>
+#include <span>
+#include <cstddef>
+#include <cstdint>
 
 namespace gulachek::gtree
 {
-	template <typename TreeWriter, typename T>
-	auto write(TreeWriter &writer, T &&t)
+	template <encodeable T>
+	cause write(std::ostream &os, const T &val)
 	{
-		mutable_tree tr;
-		auto err = encode(std::forward<T>(t), tr);
-		writer.write(tr);
-		return err;
+		tree_writer writer{os};
+		writer.write(val);
+		return {};
 	}
 }
 

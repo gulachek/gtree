@@ -1,81 +1,65 @@
 #ifndef GULACHEK_GTREE_ENCODING_HPP
 #define GULACHEK_GTREE_ENCODING_HPP
 
+#include "gulachek/gtree/my_same_as.hpp"
+#include "gulachek/gtree/base128.hpp"
 
-#include <type_traits>
-#include <string>
-#include <list>
+#include <gulachek/cause.hpp>
+
+#include <cstddef>
 #include <cstdint>
-#include <variant>
-#include <optional>
+#include <ostream>
+#include <type_traits>
 
 namespace gulachek::gtree
 {
-	// ========================================
-	// Conventional encodings
-	// ========================================
-	/*
-	 * String (value)
-	 *
-	 * 	Simply string of bytes
-	 * 	simplest type - pure data
-	 *
-	 * Unsigned Integer (value)
-	 *
-	 * 	Variable width
-	 * 	little endian
-	 *
-	 * Signed Integer (value)
-	 *
-	 * 	Variable width
-	 * 	little endian
-	 * 	2s complement (high bit at byte boundary)
-	 *
-	 * Pair
-	 *
-	 * 	Associates 2 typed values together w/ optimization:
-	 *
-	 * 	
-	 *
-	 * Vector (container)
-	 *
-	 * 	Each child represents an element of same type
-	 *
-	 * Associative
-	 *
-	 * 	Maps elements of one type to another
-	 *
-	 * 	Unique keys
-	 *
-	 * 	Given key uses children:
-	 * 		Vector of { Key Value }
-	 * 	Else:
-	 * 		Given value uses value:
-	 * 			Vector of { Key | Value }
-	 * 		else:
-	 * 			Vector of { Key | ...Value }
-	 *
-	 * Optional
-	 *
-	 * 	Either an item exists or doesn't
-	 *
-	 * 	Equivalent to KVP of null => T
-	 *
-	 * 	{ Value } (given uses value)
-	 * 	{ ...Value } (given does not use value)
-	 *
-	 * Variant
-	 *
-	 * 	Discrete/Bound set of types a single object can take
-	 *
-	 * 	Type identified by 0-based Unsigned index
-	 *
-	 * 	Equivalent to KVP Unsigned => T[i]
-	 *
-	 * Fraction ???
-	 *
-	 */
+	template <typename T>
+	struct encoding {};
 
+	class tree_writer;
+
+	template <typename T>
+	concept encodeable = requires
+	(
+	 const T &val,
+	 encoding<T> enc,
+	 tree_writer &writer
+	)
+	{
+		typename encoding<T>;
+		requires std::is_constructible_v<encoding<T>, const T &>;
+
+		{enc.encode(writer)} -> my_same_as<cause>;
+	};
+
+	class tree_writer
+	{
+		public:
+			tree_writer(std::ostream &os) :
+				os_{os}
+			{}
+
+			void value(const void *buf, std::size_t nbytes)
+			{
+				write_base128(os_, nbytes);
+				os_.write((const char*)buf, nbytes);
+			}
+
+			void child_count(std::size_t n)
+			{
+				write_base128(os_, n);
+			}
+
+			template <encodeable T>
+			void write(const T &c)
+			{
+				encoding<T> enc{c};
+				enc.encode(*this);
+			}
+
+		private:
+			std::ostream &os_;
+	};
 }
 
 #endif

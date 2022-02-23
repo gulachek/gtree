@@ -1,100 +1,110 @@
 #ifndef GULACHEK_GTREE_TREE_HPP
 #define GULACHEK_GTREE_TREE_HPP
 
-#include "gulachek/gtree/block.hpp"
-#include "gulachek/gtree/tree_base.hpp"
-#include <memory>
-#include <type_traits>
-#include <concepts>
+#include "gulachek/gtree/decoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+
+#include <span>
+#include <cstddef>
+#include <cstdint>
+#include <utility>
+#include <vector>
 
 namespace gulachek::gtree
 {
 	class tree
 	{
 		public:
-			// represents empty-value root w/ no children
-			tree();
+			using value_type = std::span<const std::uint8_t>;
 
+			tree() = default;
+
+			template <typename Value, typename Children>
 			tree(
-					const std::shared_ptr<tree_base> &base,
-					std::size_t index
-					);
+					Value &&value,
+					Children &&children
+					) :
+				value_{std::forward<Value>(value)},
+				children_{std::forward<Children>(children)}
+			{}
 
-			// Access value of tree's root node
-			const block value() const
-			{ return _node.value; }
+			value_type value() const
+			{ return {value_.data(), value_.size()}; }
 
-			// How many children?
+			void value(const value_type &val)
+			{
+				value_ = std::vector<std::uint8_t>{val.begin(), val.end()};
+			}
+
 			std::size_t child_count() const
-			{ return _node.child_count; }
+			{ return children_.size(); }
 
-			// Access children
-			tree child(std::size_t index) const;
+			void child_count(std::size_t n)
+			{ children_.resize(n); }
+
+			const tree& child(std::size_t i) const
+			{ return children_[i]; }
+
+			tree& child(std::size_t i)
+			{ return children_[i]; }
 
 		private:
-			// Fundamental structure
-			std::shared_ptr<tree_base> _base;
-
-			// Cache to avoid going through pointer
-			node _node;
+			std::vector<std::uint8_t> value_;
+			std::vector<tree> children_;
 	};
 
-	template <typename T>
-	struct tree_implements_child_
+	template <>
+	struct decoding<tree>
 	{
-		constexpr static bool value = false;
+		tree *out;
+
+		decoding(tree *o) : out{o} {}
+
+		cause value(std::size_t n, std::uint8_t *data)
+		{
+			out->value({data, data + n});
+			return {};
+		}
+
+		cause children(std::size_t n, child_reader &r)
+		{
+			out->child_count(n);
+			for (std::size_t i = 0; i < n; ++i)
+			{
+				if (auto err = r.read(&out->child(i)))
+				{
+					cause wrap;
+					wrap << "error decoding tree child " << i;
+					wrap.add_cause(err);
+					return wrap;
+				}
+			}
+
+			return {};
+		}
 	};
 
-	template <typename T, typename Self>
-	concept TreeImplementsChild_ =
-		std::is_same_v<std::decay_t<T>, Self> ||
-		tree_implements_child_<std::decay_t<T>>::value;
-
-	template <typename T>
-	concept Tree = requires(const T t, std::size_t i)
+	template <>
+	struct encoding<tree>
 	{
-		requires std::is_default_constructible_v<std::decay_t<T>>;
-		requires std::is_move_constructible_v<std::decay_t<T>>;
-		{ t.value() } -> std::same_as<const block>;
-		{ t.child_count() } -> std::same_as<std::size_t>;
-		{ t.child(i) } -> TreeImplementsChild_<T>;
+		const tree &tr_;
+
+		encoding(const tree &t) : tr_{t} {}
+
+		cause encode(tree_writer &writer)
+		{
+			auto val = tr_.value();
+			writer.value(val.data(), val.size());
+
+			auto cc = tr_.child_count();
+			writer.child_count(cc);
+
+			for (std::size_t i = 0; i < cc; ++i)
+				writer.write(tr_.child(i));
+
+			return {};
+		}
 	};
-
-	template <Tree T>
-	struct tree_implements_child_<T>
-	{
-		constexpr static bool value = true;
-	};
-
-	template <Tree TLeft, Tree TRight>
-	bool operator == (const TLeft &left, const TRight &right)
-	{
-		auto lcnt = left.child_count(), rcnt = right.child_count();
-
-		if (lcnt != rcnt)
-			return false;
-
-		if (left.value() != right.value())
-			return false;
-
-		for (std::size_t i = 0; i < lcnt; i++)
-			if (left.child(i) != right.child(i))
-				return false;
-
-		return true;
-	}
-
-	template <Tree TLeft, Tree TRight>
-	bool operator != (const TLeft &left, const TRight &right)
-	{
-		return !(left == right);
-	}
-
-	template <Tree Tr>
-	bool is_empty(const Tr &t)
-	{
-		return t.value().empty() && t.child_count() == 0;
-	}
 }
 
 #endif
