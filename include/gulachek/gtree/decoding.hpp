@@ -15,7 +15,7 @@ namespace gulachek::gtree
 	template <typename T>
 	struct decoding {};
 
-	class child_reader;
+	class treeder;
 
 	template <typename T>
 	concept decodable = requires
@@ -24,7 +24,7 @@ namespace gulachek::gtree
 		 decoding<T> dec,
 		 std::size_t n,
 		 std::uint8_t *data,
-		 child_reader &r
+		 treeder &r
 		 )
 	{
 		typename decoding<T>;
@@ -42,10 +42,10 @@ namespace gulachek::gtree
 		bad_children
 	};
 
-	class child_reader
+	class treeder
 	{
 		public:
-			child_reader(std::istream &is) :
+			treeder(std::istream &is) :
 				is_{is}
 			{}
 

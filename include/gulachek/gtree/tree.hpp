@@ -64,7 +64,7 @@ namespace gulachek::gtree
 			return {};
 		}
 
-		cause children(std::size_t n, child_reader &r)
+		cause children(std::size_t n, treeder &r)
 		{
 			out->child_count(n);
 			for (std::size_t i = 0; i < n; ++i)

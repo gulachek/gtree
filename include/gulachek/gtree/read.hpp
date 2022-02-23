@@ -18,7 +18,7 @@ namespace gulachek::gtree
 	template <decodable Decodable>
 	cause read(std::istream &is, Decodable *target)
 	{
-		child_reader reader{is};
+		treeder reader{is};
 		return reader.read(target);
 	}
 }
