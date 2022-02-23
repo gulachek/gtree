@@ -43,6 +43,16 @@ namespace gulachek
 				causes_{other.causes_}
 			{}
 
+			cause(cause &&other) = default;
+			cause& operator =(cause &&other) = default;
+
+			cause& operator = (const cause &other)
+			{
+				cause temp{other};
+				std::swap(*this, temp);
+				return *this;
+			}
+
 			operator bool () const
 			{
 				return (code_ != standard_code::generic) ||

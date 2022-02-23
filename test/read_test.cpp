@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstdint>
 
+using cause = gulachek::cause;
 namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(EmptyTree)
@@ -133,4 +134,48 @@ BOOST_AUTO_TEST_CASE(AbcChildren)
 	auto cval = c.value();
 	BOOST_TEST(cval.size() == 1);
 	BOOST_TEST(cval[0] == 'c');
+}
+
+struct read_first_child
+{
+	cause gtree_decode(gt::treeder &r)
+	{
+		gt::ignore child;
+		return r.read(&child);
+	}
+};
+
+BOOST_AUTO_TEST_CASE(ReadTooManyChildrenThrowsLogicError)
+{
+	auto go = []{
+
+		std::vector<std::uint8_t> buf = {
+			0, 0,
+		};
+		std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+
+		read_first_child x;
+		gt::read(is, &x);
+	};
+
+	BOOST_CHECK_THROW(go(), std::logic_error);
+}
+
+BOOST_AUTO_TEST_CASE(ReadTooFewChildrenIsAccountedFor)
+{
+	std::vector<std::uint8_t> buf = {
+		0, 2,
+		0, 0,
+		0, 0,
+	};
+	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+
+	read_first_child x;
+	auto err = gt::read(is, &x);
+	BOOST_CHECK(!err);
+
+	gt::tree tr;
+	err = gt::read(is, &tr);
+
+	BOOST_CHECK(err.is_eof());
 }
