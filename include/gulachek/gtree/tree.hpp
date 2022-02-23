@@ -48,6 +48,19 @@ namespace gulachek::gtree
 			tree& child(std::size_t i)
 			{ return children_[i]; }
 
+			cause gtree_encode(tree_writer &writer) const
+			{
+				writer.value(value_.data(), value_.size());
+
+				auto cc = child_count();
+				writer.child_count(cc);
+
+				for (std::size_t i = 0; i < cc; ++i)
+					writer.write(children_[i]);
+
+				return {};
+			}
+
 		private:
 			std::vector<std::uint8_t> value_;
 			std::vector<tree> children_;
@@ -77,26 +90,6 @@ namespace gulachek::gtree
 					return wrap;
 				}
 			}
-
-			return {};
-		}
-	};
-
-	template <>
-	struct encoding<tree>
-	{
-		const tree &tr_;
-
-		cause encode(tree_writer &writer)
-		{
-			auto val = tr_.value();
-			writer.value(val.data(), val.size());
-
-			auto cc = tr_.child_count();
-			writer.child_count(cc);
-
-			for (std::size_t i = 0; i < cc; ++i)
-				writer.write(tr_.child(i));
 
 			return {};
 		}

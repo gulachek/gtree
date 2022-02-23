@@ -28,7 +28,6 @@ namespace gulachek::gtree
 	{
 		typename encoding<T>;
 		{ encoding<T>{val} };
-		//requires std::is_constructible_v<encoding<T>, const T &>;
 
 		{enc.encode(writer)} -> my_same_as<cause>;
 	};
@@ -60,6 +59,27 @@ namespace gulachek::gtree
 
 		private:
 			std::ostream &os_;
+	};
+
+	template <typename T>
+	concept class_encodable = requires
+	(
+	 const T &val,
+	 tree_writer &writer
+	 )
+	{
+		{ val.gtree_encode(writer) } -> my_same_as<cause>;
+	};
+
+	template <class_encodable T>
+	struct encoding<T>
+	{
+		const T &val_;
+
+		cause encode(tree_writer &writer)
+		{
+			return val_.gtree_encode(writer);
+		}
 	};
 }
 
