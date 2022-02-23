@@ -61,38 +61,30 @@ namespace gulachek::gtree
 				return {};
 			}
 
+			cause gtree_decode(treeder &reader)
+			{
+				value(reader.value());
+
+				auto n = reader.child_count();
+				child_count(n);
+
+				for (std::size_t i = 0; i < n; ++i)
+				{
+					if (auto err = reader.read(&children_[i]))
+					{
+						cause wrap;
+						wrap << "error decoding tree child " << i;
+						wrap.add_cause(err);
+						return wrap;
+					}
+				}
+
+				return {};
+			}
+
 		private:
 			std::vector<std::uint8_t> value_;
 			std::vector<tree> children_;
-	};
-
-	template <>
-	struct decoding<tree>
-	{
-		tree *out;
-
-		cause value(std::size_t n, std::uint8_t *data)
-		{
-			out->value({data, data + n});
-			return {};
-		}
-
-		cause children(std::size_t n, treeder &r)
-		{
-			out->child_count(n);
-			for (std::size_t i = 0; i < n; ++i)
-			{
-				if (auto err = r.read(&out->child(i)))
-				{
-					cause wrap;
-					wrap << "error decoding tree child " << i;
-					wrap.add_cause(err);
-					return wrap;
-				}
-			}
-
-			return {};
-		}
 	};
 }
 

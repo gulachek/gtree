@@ -6,6 +6,7 @@
 
 #include <gulachek/cause.hpp>
 
+#include <span>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -22,16 +23,13 @@ namespace gulachek::gtree
 		(
 		 T *p,
 		 decoding<T> dec,
-		 std::size_t n,
-		 std::uint8_t *data,
 		 treeder &r
 		 )
 	{
 		typename decoding<T>;
 		{ decoding<T>{p} };
 
-		{dec.value(n, data)} -> my_same_as<cause>;
-		{dec.children(n, r)} -> my_same_as<cause>;
+		{dec.decode(r)} -> my_same_as<cause>;
 	};
 
 	enum class read_error
@@ -48,6 +46,16 @@ namespace gulachek::gtree
 			treeder(std::istream &is) :
 				is_{is}
 			{}
+
+			std::span<const std::uint8_t> value() const
+			{
+				return {buf_.data(), buf_.size()};
+			}
+
+			std::size_t child_count() const
+			{
+				return nchildren_;
+			}
 
 			template <decodable Decodable>
 			cause read(Decodable *target)
@@ -78,16 +86,7 @@ namespace gulachek::gtree
 					return err;
 				}
 
-				// invoke encoding specific logic
-				if (auto err = dec.value(nbytes, buf_.data()))
-				{
-					cause wrap{"handling tree value"};
-					wrap.add_cause(err);
-					return wrap;
-				}
-
-				std::size_t nchildren;
-				if (auto err = read_base128(is_, &nchildren))
+				if (auto err = read_base128(is_, &nchildren_))
 				{
 					cause wrap{read_error::incomplete_child_count};
 					wrap << "error reading child count";
@@ -96,7 +95,7 @@ namespace gulachek::gtree
 				}
 
 				// handle each child
-				if (auto err = dec.children(nchildren, *this))
+				if (auto err = dec.decode(*this))
 				{
 					cause wrap{read_error::bad_children, "handling tree children"};
 					wrap.add_cause(err);
@@ -108,9 +107,28 @@ namespace gulachek::gtree
 
 		private:
 			std::istream &is_;
+			std::size_t nchildren_;
 			std::vector<std::uint8_t> buf_;
 	};
 
+	template <typename T>
+	concept class_decodable = requires
+	(
+	 T &val,
+	 treeder &reader
+	)
+	{
+		{ val.gtree_decode(reader) } -> my_same_as<cause>;
+	};
+
+	template <class_decodable T>
+	struct decoding<T>
+	{
+		T *out;
+
+		cause decode(treeder &r)
+		{ return out->gtree_decode(r); }
+	};
 }
 
 #endif
