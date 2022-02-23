@@ -152,3 +152,26 @@ BOOST_AUTO_TEST_CASE(WritingTooFewChildrenIsLogicError)
 
 	BOOST_CHECK_THROW(go(), std::logic_error);
 }
+
+template <typename T>
+std::span<const std::uint8_t> make_span(const T &v)
+{
+	auto start = (const std::uint8_t *)&v;
+	return {start, start + sizeof(T)};
+}
+
+BOOST_AUTO_TEST_CASE(AbcTree)
+{
+	char a = 'a', b = 'b', c = 'c';
+
+	gt::tree tr;
+	tr.value(make_span(a));
+	tr.child_count(2);
+	tr.child(0).value(make_span(b));
+	tr.child(1).value(make_span(c));
+
+	std::ostringstream os;
+	gt::write(os, tr);
+
+	BOOST_TEST(os.str() == "\x01\x61\x02\x01\x62\x00\x01\x63\x00"s);
+}
