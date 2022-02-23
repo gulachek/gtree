@@ -27,7 +27,8 @@ namespace gulachek::gtree
 	)
 	{
 		typename encoding<T>;
-		requires std::is_constructible_v<encoding<T>, const T &>;
+		{ encoding<T>{val} };
+		//requires std::is_constructible_v<encoding<T>, const T &>;
 
 		{enc.encode(writer)} -> my_same_as<cause>;
 	};

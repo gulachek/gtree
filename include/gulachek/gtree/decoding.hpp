@@ -28,8 +28,7 @@ namespace gulachek::gtree
 		 )
 	{
 		typename decoding<T>;
-		requires std::is_default_constructible_v<T>;
-		requires std::is_constructible_v<decoding<T>, T*>;
+		{ decoding<T>{p} };
 
 		{dec.value(n, data)} -> my_same_as<cause>;
 		{dec.children(n, r)} -> my_same_as<cause>;

@@ -58,8 +58,6 @@ namespace gulachek::gtree
 	{
 		tree *out;
 
-		decoding(tree *o) : out{o} {}
-
 		cause value(std::size_t n, std::uint8_t *data)
 		{
 			out->value({data, data + n});
@@ -88,8 +86,6 @@ namespace gulachek::gtree
 	struct encoding<tree>
 	{
 		const tree &tr_;
-
-		encoding(const tree &t) : tr_{t} {}
 
 		cause encode(tree_writer &writer)
 		{
