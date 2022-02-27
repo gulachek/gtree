@@ -12,6 +12,12 @@
 
 namespace gulachek::gtree
 {
+	template <typename T, typename Elem>
+	concept vector_like = requires (T &&val)
+	{
+		std::vector<Elem>{std::forward<T>(val)};
+	};
+
 	class tree
 	{
 		public:
@@ -19,13 +25,24 @@ namespace gulachek::gtree
 
 			tree() = default;
 
-			template <typename Value, typename Children>
+			template <
+				vector_like<std::uint8_t> Value,
+				vector_like<tree> Children
+					>
 			tree(
 					Value &&value,
 					Children &&children
 					) :
 				value_{std::forward<Value>(value)},
 				children_{std::forward<Children>(children)}
+			{}
+
+			template < vector_like<std::uint8_t> Value >
+			tree(
+					Value &&value
+					) :
+				value_{std::forward<Value>(value)},
+				children_{}
 			{}
 
 			value_type value() const

@@ -1,7 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_STRING_HPP
 #define GULACHEK_GTREE_ENCODING_STRING_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 
 #include <string>
 #include <type_traits>
@@ -9,27 +10,28 @@
 namespace gulachek::gtree
 {
 	template <>
-	struct encoding<std::string>
+	struct decoding<std::string>
 	{
-		using type = std::string;
+		std::string *s;
 
-		// Strings are simply strings of bytes
-		// Not generalized to basic_string because of encoding issues
-		template <typename String, typename MutableTree>
-		static error encode(String &&val, MutableTree &tree)
+		cause decode(treeder &r)
 		{
-			tree.value({(std::uint8_t*)val.data(), val.size()});
+			auto val = r.value();
+			auto start = (const char*) val.data();
+			*s = std::string{start, start + val.size()};
 			return {};
 		}
+	};
 
-		template <typename Tree>
-		static error decode(Tree &&tree, std::string &val)
+	template <>
+	struct encoding<std::string>
+	{
+		const std::string &s;
+
+		cause encode(tree_writer &w)
 		{
-			auto tval = tree.value();
-			auto start = tval.data();
-
-			val = std::string{start, start + tval.size()};
-
+			w.value(s.data(), s.size());
+			w.child_count(0);
 			return {};
 		}
 	};
