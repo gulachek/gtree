@@ -1,60 +1,36 @@
 #ifndef GULACHEK_GTREE_ENCODING_UNSIGNED_HPP
 #define GULACHEK_GTREE_ENCODING_UNSIGNED_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 
 #include <cstdint>
 #include <cmath>
-#include <list>
 #include <type_traits>
 
 namespace gulachek::gtree
 {
 	template <typename T>
-	struct encoding<
-		T, 
-		typename std::enable_if<std::is_unsigned_v<std::decay_t<T>>, void>::type
-		>
+		requires std::is_unsigned_v<T>
+	struct decoding<T>
 	{
-		using type = T;
+		T *pn;
 
-		template <typename U, typename MutableTree>
-		static error encode(U &&val, MutableTree &tree)
+		cause decode(treeder &r)
 		{
-			auto n = val;
-			std::vector<std::uint8_t> bytes;
-			bytes.resize(sizeof(U));
-			std::size_t i = 0;
-
-			while (n > 0)
-			{
-				bytes[i++] = (n & 0xff);
-
-				// avoid compiler warning for width of type here
-				if constexpr (sizeof(T) == 1) n = 0;
-				else n >>= 8;
-			}
-
-			tree.value({bytes.data(), i});
-
-			return {};
-		}
-
-		template <typename Tree>
-		static error decode(Tree &&t, T &n)
-		{
-			auto tval = t.value();
+			auto tval = r.value();
 			auto size = tval.size();
-			constexpr auto width = sizeof(std::decay_t<T>);
+
+			constexpr auto width = sizeof(T);
 			if (size > width)
 			{
-				error err;
+				cause err;
 				err << "Unsigned integer overflow. '" << size << "' cannot fit in '"
 					<< width << "' byte(s)";
 				return err;
 			}
 
-			n = 0;
+			T n = 0;
 
 			auto start = tval.data();
 			for (std::size_t i = 0; i < size; i++)
@@ -63,6 +39,31 @@ namespace gulachek::gtree
 				n |= (b << 8*i);
 			}
 
+			*pn = n;
+			return {};
+		}
+	};
+
+	template <typename T>
+		requires std::is_unsigned_v<T>
+	struct encoding<T>
+	{
+		const T &n;
+
+		cause encode(tree_writer &w)
+		{
+			std::uint8_t bytes[sizeof(T)];
+			std::size_t i = 0;
+
+			auto x = n;
+			while (x > 0)
+			{
+				bytes[i++] = (x % 256);
+				x /= 256;
+			}
+
+			w.value(bytes, i);
+			w.child_count(0);
 			return {};
 		}
 	};
