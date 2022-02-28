@@ -1,11 +1,12 @@
 #ifndef GUlACHEK_GTREE_ENCODING_TWOS_COMPLEMENT_HPP
 #define GUlACHEK_GTREE_ENCODING_TWOS_COMPLEMENT_HPP
 
-#include "gulachek/gtree/block.hpp"
+#include <span>
+#include <cstdint>
 
 namespace gulachek::gtree
 {
-	void twos_complement(block b);
+	void twos_complement(void *buf, std::size_t nbytes);
 }
 
 #endif

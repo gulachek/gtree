@@ -20,6 +20,7 @@ endif()
 
 add_library(${core}
 	src/base128.cpp
+	src/twos_complement.cpp
 	)
 
 target_include_directories(${core} PUBLIC

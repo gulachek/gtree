@@ -2,10 +2,9 @@
 
 namespace gulachek::gtree
 {
-	void twos_complement(block b)
+	void twos_complement(void *buf, std::size_t n)
 	{
-		auto start = b.data();
-		auto n = b.size();
+		auto start = (std::uint8_t*)buf;
 
 		std::uint8_t carry = 1;
 		for (auto i = start; i < start + n; i++)
