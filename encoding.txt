@@ -1,0 +1,33 @@
+Both:
+
+tree {
+	byte[] value;
+	tree[] children;
+}
+
+How do you represent an integer?
+
+little endian base-128
+ending byte is when the high bit is not set
+
+00 -> 0
+01 -> 1
+
+80 01 -> 128
+
+Previous encoding:
+
+<how big is the "node block">
+
+	node block:
+	< how many nodes? >
+	foreach node in BFS order:
+	<value bytes length>< num children >
+
+	data block:
+	foreach node in BFS order:
+	<value bytes>
+
+Current encoding:
+
+	< nbytes of value > < value > <n children > < recurse >
