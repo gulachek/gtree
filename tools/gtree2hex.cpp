@@ -3,10 +3,11 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <span>
 
 namespace gt = gulachek::gtree;
 
-static std::string _hex(const gt::block &b)
+static std::string _hex(const std::span<const std::uint8_t> &b)
 {
 	std::stringstream ss;
 	ss << std::hex;
@@ -25,21 +26,22 @@ void _print(const gt::tree &t, std::size_t ident)
 		_print(t.child(i), ident+1);
 }
 
-template <typename ITreem>
-bool gtree2hex(ITreem &itreem)
+bool gtree2hex(std::istream &is)
 {
 	gt::tree t;
 
-	try
+	while (true)
 	{
-		while (itreem.read(&t))
-				_print(t, 0);
-		return true;
-	}
-	catch (const std::exception &ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return false;
+		if (auto err = gt::read(is, &t))
+		{
+			if (err.is_eof())
+				return true;
+
+			std::cerr << err << std::endl;
+			return false;
+		}
+
+		_print(t, 0);
 	}
 }
 
@@ -49,7 +51,7 @@ int main(int argc, char** argv)
 
 	if (argc == 1)
 	{
-		success = gtree2hex(gt::tin);
+		success = gtree2hex(std::cin);
 	}
 	else
 	{
@@ -58,8 +60,7 @@ int main(int argc, char** argv)
 			std::ifstream ifs{argv[i]};
 			if (ifs)
 			{
-				gt::itreem it{ifs};
-				success = success && gtree2hex(it);
+				success = success && gtree2hex(ifs);
 			}
 			else
 			{

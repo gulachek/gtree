@@ -90,6 +90,8 @@ namespace gulachek
 			void add_cause(Cause &&c)
 			{ causes_.emplace_back(std::forward<Cause>(c)); }
 
+			void output(std::ostream &os) const;
+
 		private:
 			standard_code code_;
 			std::size_t ucode_;
@@ -105,6 +107,8 @@ namespace gulachek
 	{
 		{c << val} -> __is_cause_ref;
 	};
+
+	std::ostream& operator << (std::ostream &os, const cause &c);
 }
 
 #endif
