@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cmath>
+#include <span>
 #include <type_traits>
 
 namespace gulachek::gtree
@@ -36,6 +37,13 @@ namespace gulachek::gtree
 
 		*pn = n;
 		return {};
+	}
+
+	template <typename T>
+	cause decode_unsigned(
+			const std::span<const std::uint8_t> &val, T *pn)
+	{
+		return decode_unsigned(val.data(), val.size(), pn);
 	}
 
 	template <typename T>

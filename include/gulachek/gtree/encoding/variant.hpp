@@ -1,7 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_VARIANT_HPP
 #define GULACHEK_GTREE_ENCODING_VARIANT_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
 
 #include <variant>
@@ -9,145 +10,109 @@
 
 namespace gulachek::gtree
 {
-	template <typename Variant>
-	struct variant_encoding
-	{};
-
-	template <std::size_t I, typename Head, typename ...Tail>
-	struct meta_cons_
-	{
-		static constexpr std::size_t index = I;
-		static constexpr bool has_next = true;
-		using type = Head;
-
-		using next = meta_cons_<I+1, Tail...>;
-	};
-
-	template <std::size_t I, typename End>
-	struct meta_cons_<I, End>
-	{
-		static constexpr std::size_t index = I;
-		static constexpr bool has_next = false;
-		using type = End;
-	};
-
-	template <typename Cons, typename T>
-	constexpr std::ptrdiff_t index_of()
-	{
-		if constexpr (std::is_same_v<typename Cons::type, T>)
-			return Cons::index;
-
-		if constexpr (Cons::has_next)
-			return index_of<typename Cons::next, T>();
-
-		return -1;
-	}
-
 	template <typename ...Ts>
-	struct meta_cons : meta_cons_<0, Ts...> {};
-
-	// Specialization for std::variant
-	template <typename ...Ts>
-	struct variant_encoding<std::variant<Ts...>>
+	struct decoding<std::variant<Ts...>>
 	{
-		using types = meta_cons<Ts...>;
+		static constexpr std::size_t n = sizeof...(Ts);
+		using var_t = std::variant<Ts...>;
 
-		template <typename Var>
-		static std::size_t index(Var &&v)
-		{ return std::forward<Var>(v).index(); }
+		var_t *pv;
 
-		template <typename T, typename Var>
-		static auto get(Var &&v)
-		{ return std::get<T>(std::forward<Var>(v)); }
-	};
-
-	template <typename Variant>
-	struct encoding<Variant, enable_t<typename variant_encoding<Variant>::types>>
-	{
-		using type = Variant;
-		using var_encoding = variant_encoding<Variant>;
-		using types = typename var_encoding::types;
-
-		template <typename Types, typename Tree, typename V>
-		static error encode_(V &&var, Tree &tree, std::size_t i)
+		cause decode(treeder &r)
 		{
-			using type = typename Types::type;
-
-			if (i == Types::index)
+			std::size_t actual_index;
+			if (auto err = decode_unsigned(r.value(), &actual_index))
 			{
-				auto &&ref = var_encoding::
-					template get<type>(std::forward<V>(var));
-
-				tree.child_count(1);
-				return gtree::encode(std::forward<type>(ref), tree.child(0));
+				cause wrap{"failed to decode variant alt index"};
+				wrap.add_cause(err);
+				return wrap;
 			}
 
-			if constexpr (Types::has_next)
+			if (!r.child_count())
 			{
-				return encode_<typename Types::next>(std::forward<V>(var), tree, i);
+				return {"tree must have child to decode variant"};
 			}
 
-			return error{"Variant index out of range"};
+			return decode_alt<0>(actual_index, r);
 		}
 
-		// Variant has type index as value and data as first child
-		template <
-			typename Tree,
-			typename V
-				 >
-		static error encode(
-				V &&val,
-				Tree &tree
-				)
+		template <std::size_t index>
+			requires (index == n)
+		cause decode_alt(std::size_t actual_index, treeder &)
 		{
-			// can I use a const lvalue to pass here?
-			auto index = var_encoding::index(std::forward<V>(val));
-
-			// assume integers can't fail encoding
-			gtree::encode(index, tree);
-			return encode_<types>(std::forward<V>(val), tree, index);
+			cause err;
+			err << "variant alt index " << actual_index << " is out of "
+				"bounds for a variant with " << n << " alts";
+			return err;
 		}
 
-		template <typename Types, typename Tree>
-		static error decode_(Tree &&tree, type &val, std::size_t i)
+		template <std::size_t index>
+			requires (index < n)
+		cause decode_alt(std::size_t actual_index, treeder &r)
 		{
-			using type = typename Types::type;
-
-			if (i == Types::index)
+			if (actual_index == index)
 			{
-				type elem;
+				using alt_t = std::variant_alternative_t<index, var_t>;
+				alt_t val;
+				
+				if (auto err = r.read(&val))
+				{
+					cause wrap;
+					wrap << "error reading variant alt " << index;
+					wrap.add_cause(err);
+					return wrap;
+				}
 
-				error err =
-					gtree::decode(std::forward<Tree>(tree).child(0), elem);
-
-				if (err) return err;
-				val = std::move(elem);
+				pv->template emplace<index>(std::move(val));
 				return {};
 			}
 
-			if constexpr (Types::has_next)
-			{
-				return decode_<typename Types::next>
-					(std::forward<Tree>(tree), val, i);
-			}
+			return decode_alt<index+1>(actual_index, r);
+		}
+	};
 
-			return error{"Variant index out of range"};
+	template <typename ...Ts>
+	struct encoding<std::variant<Ts...>>
+	{
+		static constexpr size_t n = sizeof...(Ts);
+		using var_t = std::variant<Ts...>;
+
+		const var_t &v;
+
+		cause encode(tree_writer &w)
+		{
+			std::uint8_t index[sizeof(std::size_t)];
+			auto n = encode_unsigned(index, v.index());
+			w.value(index, n);
+
+			w.child_count(1);
+			return encode_alt<0>(w);
 		}
 
-		template <
-			typename Tree
-			>
-		static error decode(
-				Tree &&tree,
-				type &val
-				)
+		template <std::size_t index>
+			requires (index == n)
+		cause encode_alt(tree_writer &)
 		{
-			std::size_t index;
+			throw std::logic_error{"should not happen"};
+		}
 
-			if (auto err = gtree::decode(std::forward<Tree>(tree), index))
-				return err;
+		template <std::size_t index>
+			requires (index < n)
+		cause encode_alt(tree_writer &w)
+		{
+			if (v.index() == index)
+			{
+				if (auto err = w.write(std::get<index>(v)))
+				{
+					cause wrap;
+					wrap << "error encoding variant alt " << index;
+					wrap.add_cause(err);
+					return wrap;
+				}
+				return {};
+			}
 
-			return decode_<types>(std::forward<Tree>(tree), val, index);
+			return encode_alt<index+1>(w);
 		}
 	};
 }
