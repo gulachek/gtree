@@ -1,44 +1,54 @@
 #ifndef GULACHEK_GTREE_ENDODING_SET_HPP
 #define GULACHEK_GTREE_ENDODING_SET_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 
 #include <set>
 
 namespace gulachek::gtree
 {
-	template <typename T>
-	struct encoding<std::set<T>>
+	template <typename K, typename C, typename A>
+	struct decoding<std::set<K, C, A>>
 	{
-		using type = std::set<T>;
+		std::set<K,C,A> *ps;
 
-		template <typename Set, typename MutableTree>
-		static error encode(Set &&set, MutableTree &tree)
+		cause decode(treeder &r)
 		{
-			tree.child_count(set.size());
-
-			std::size_t i = 0;
-			for (auto &&elem : std::forward<Set>(set))
+			auto n = r.child_count();
+			for (std::size_t i = 0; i < n; ++i)
 			{
-				if (auto err = gtree::encode(elem, tree.child(i++)))
-					return err;
+				K elem;
+				if (auto err = r.read(&elem))
+				{
+					cause wrap{"error reading set elem"};
+					wrap.add_cause(err);
+					return wrap;
+				}
+				ps->emplace(std::move(elem));
 			}
-
 			return {};
 		}
+	};
 
-		template <typename Tree>
-		static error decode(Tree &&tree, type &set)
+	template <typename K, typename C, typename A>
+	struct encoding<std::set<K,C,A>>
+	{
+		const std::set<K,C,A> &s;
+
+		cause encode(tree_writer &w)
 		{
-			set.clear();
+			w.value(nullptr, 0);
+			w.child_count(s.size());
 
-			for (std::size_t i = 0; i < tree.child_count(); i++)
+			for (const auto &elem : s)
 			{
-				T elem;
-				if (auto err = gtree::decode(std::forward<Tree>(tree).child(i), elem))
-					return err;
-
-				set.emplace(std::move(elem));
+				if (auto err = w.write(elem))
+				{
+					cause wrap{"error writing set elem"};
+					wrap.add_cause(err);
+					return wrap;
+				}
 			}
 
 			return {};
