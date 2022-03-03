@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 #include <sstream>
+#include <type_traits>
 
 namespace gulachek
 {
@@ -96,6 +97,14 @@ namespace gulachek
 			std::vector<cause> causes_;
 	};
 
+	template <typename T>
+	concept __is_cause_ref = std::is_same_v<T, cause&>;
+
+	template <typename T>
+	concept cause_writable = requires (T val, cause c)
+	{
+		{c << val} -> __is_cause_ref;
+	};
 }
 
 #endif

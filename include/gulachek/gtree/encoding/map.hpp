@@ -1,7 +1,8 @@
 #ifndef GULACHEK_GTREE_ENCODING_MAP_HPP
 #define GULACHEK_GTREE_ENCODING_MAP_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 #include "gulachek/gtree/encoding/pair.hpp"
 
 #include <map>
@@ -9,39 +10,61 @@
 namespace gulachek::gtree
 {
 	template <typename K, typename V, typename C, typename A>
-	struct encoding<std::map<K,V,C,A>>
+	struct decoding<std::map<K,V,C,A>>
 	{
-		using type = std::map<K,V,C,A>;
+		std::map<K,V,C,A> *pm;
 
-		template <typename Map, MutableTree Tree>
-		static error encode(Map &&val, Tree &tree)
+		cause decode(treeder &r)
 		{
-			tree.child_count(val.size());
-
-			std::size_t i = 0;
-			for (auto &&kv : std::forward<Map>(val))
+			auto n = r.child_count();
+			for (std::size_t i = 0; i < n; ++i)
 			{
-				if (auto err =
-						gtree::encode(std::forward<std::pair<K,V>>(kv), tree.child(i++)))
+				std::pair<K,V> p;
+				if (auto err = r.read(&p))
+				{
+					cause wrap{"error reading map elem"};
+					wrap.add_cause(err);
+					return wrap;
+				}
+
+				auto it_new = pm->insert(std::move(p));
+				if (!it_new.second)
+				{
+					cause err{"error decoding map due to duplicate key"};
+					if constexpr (cause_writable<K>)
+					{
+						err << ": " << it_new.first->first;
+					}
 					return err;
+				}
 			}
 
 			return {};
 		}
+	};
 
-		template <Tree Tr>
-		static error decode(Tr &&tree, type &val)
+	template <typename K, typename V, typename C, typename A>
+	struct encoding<std::map<K,V,C,A>>
+	{
+		const std::map<K,V,C,A> &m;
+
+		cause encode(tree_writer &w)
 		{
-			val.clear();
+			w.value(nullptr, 0);
+			w.child_count(m.size());
 
-			for (std::size_t i = 0; i < tree.child_count(); i++)
+			for (const auto &elem : m)
 			{
-				std::pair<K, V> kv;
-
-				if (auto err = gtree::decode(std::forward<Tr>(tree).child(i), kv))
-					return err;
-
-				val.emplace(std::move(kv));
+				if (auto err = w.write(elem))
+				{
+					cause wrap{"error writing map elem"};
+					if constexpr (cause_writable<K>)
+					{
+						wrap << " with key " << elem.first;
+					}
+					wrap.add_cause(err);
+					return wrap;
+				}
 			}
 
 			return {};
