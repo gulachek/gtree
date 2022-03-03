@@ -1,56 +1,94 @@
 #ifndef GULACHEK_GTREE_ENCODING_TUPLE_HPP
 #define GULACHEK_GTREE_ENCODING_TUPLE_HPP
 
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
+
 #include <tuple>
 #include <type_traits>
 
 namespace gulachek::gtree
 {
 	template <typename ...Ts>
-	struct uses_value<std::tuple<Ts...>> : std::false_type {};
-
-	template <std::size_t n, typename Tree, typename Tuple,
-		std::enable_if_t<n == std::tuple_size_v<Tuple>, int> = 0
-			>
-	void __encode(const Tuple &val, Tree &tree)
-	{}
-
-	template <std::size_t n, typename Tree, typename Tuple,
-		std::enable_if_t<n < std::tuple_size_v<Tuple>, int> = 0
-			>
-	void __encode(const Tuple &val, Tree &tree)
+	struct decoding<std::tuple<Ts...>>
 	{
-		encode(std::get<n>(val), tree.child(n));
-		__encode<n+1>(val, tree);
-	}
+		static constexpr std::size_t n = sizeof...(Ts);
 
-	template <typename MutableTree, typename ...Ts>
-	void encode(const std::tuple<Ts...> &val, MutableTree &tree)
+		std::tuple<Ts...> *ptup;
+
+		cause decode(treeder &r)
+		{
+			auto cc = r.child_count();
+			if (cc < n)
+			{
+				cause err;
+				err << "too few tuple elements to decode. expected " <<
+					n << " but encountered " << cc;
+				return err;
+			}
+
+			return decode_elem<0>(r);
+		}
+
+		template <std::size_t index>
+			requires (index == n)
+		cause decode_elem(treeder &r)
+		{
+			return {};
+		}
+
+		template <std::size_t index>
+			requires (index < n)
+		cause decode_elem(treeder &r)
+		{
+			if (auto err = r.read(&std::get<index>(*ptup)))
+			{
+				cause wrapper;
+				wrapper << "error decoding tuple elem " << index;
+				wrapper.add_cause(err);
+				return err;
+			}
+
+			return decode_elem<index+1>(r);
+		}
+	};
+
+	template <typename ...Ts>
+	struct encoding<std::tuple<Ts...>>
 	{
-		tree.child_count(sizeof...(Ts));
-		__encode<0>(val, tree);
-	}
+		static constexpr std::size_t n = sizeof...(Ts);
 
-	template <std::size_t n, typename Tree, typename Tuple,
-		std::enable_if_t<n == std::tuple_size_v<Tuple>, int> = 0
-			>
-	void __decode(const Tree &tree, Tuple &val)
-	{}
+		const std::tuple<Ts...> &tup;
 
-	template <std::size_t n, typename Tree, typename Tuple,
-		std::enable_if_t<n < std::tuple_size_v<Tuple>, int> = 0
-			>
-	void __decode(const Tree &tree, Tuple &val)
-	{
-		decode(tree.child(n), std::get<n>(val));
-		__decode<n+1>(tree, val);
-	}
+		cause encode(tree_writer &w)
+		{
+			w.value(nullptr, 0);
+			w.child_count(n);
+			return encode_elem<0>(w);
+		}
 
-	template <typename Tree, typename ...Ts>
-	void decode(const Tree &tree, std::tuple<Ts...> &val)
-	{
-		__decode<0>(tree, val);
-	}
+		template <std::size_t index>
+			requires (index == n)
+		cause encode_elem(tree_writer &)
+		{
+			return {};
+		}
+
+		template <std::size_t index>
+			requires (index < n)
+		cause encode_elem(tree_writer &w)
+		{
+			if (auto err = w.write(std::get<index>(tup)))
+			{
+				cause wrapper;
+				wrapper << "error encoding tuple elem " << index;
+				wrapper.add_cause(err);
+				return wrapper;
+			}
+
+			return encode_elem<index+1>(w);
+		}
+	};
 }
 
 #endif
