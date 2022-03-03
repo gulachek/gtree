@@ -45,6 +45,9 @@ namespace gulachek::gtree
 				children_{}
 			{}
 
+			bool empty() const
+			{ return value_.empty() && children_.empty(); }
+
 			value_type value() const
 			{ return {value_.data(), value_.size()}; }
 

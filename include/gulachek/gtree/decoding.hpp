@@ -64,6 +64,7 @@ namespace gulachek::gtree
 
 			template <decodable Decodable>
 			cause read(Decodable *target);
+
 		private:
 			std::istream &is_;
 			std::size_t nchildren_;

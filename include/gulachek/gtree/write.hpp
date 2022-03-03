@@ -13,12 +13,11 @@
 
 namespace gulachek::gtree
 {
-	template <encodeable T>
+	template <encodable T>
 	cause write(std::ostream &os, const T &val)
 	{
 		tree_writer writer{os};
-		writer.write(val);
-		return {};
+		return writer.write(val);
 	}
 }
 

@@ -19,7 +19,7 @@ namespace gulachek::gtree
 	class tree_writer;
 
 	template <typename T>
-	concept encodeable = requires
+	concept encodable = requires
 	(
 	 const T &val,
 	 encoding<T> enc,
@@ -71,8 +71,8 @@ namespace gulachek::gtree
 				nchildren_ = n;
 			}
 
-			template <encodeable T>
-			void write(const T &c)
+			template <encodable T>
+			cause write(const T &c)
 			{
 				if (cursor_ != cursor_position::children)
 					throw std::logic_error{"Must write children immediately after child count"};
@@ -85,10 +85,18 @@ namespace gulachek::gtree
 				tree_writer writer{os_};
 				writer.cursor_ = cursor_position::value;
 
-				enc.encode(writer);
+				if (auto err = enc.encode(writer))
+				{
+					cause wrapper;
+					wrapper << "error writing child " << (write_count_-1);
+					wrapper.add_cause(err);
+					return wrapper;
+				}
 
 				if (writer.write_count_ < writer.nchildren_)
 					throw std::logic_error{"Must write appropriate number of children"};
+
+				return {};
 			}
 
 		private:
