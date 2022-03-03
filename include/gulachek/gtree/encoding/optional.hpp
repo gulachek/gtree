@@ -1,46 +1,61 @@
 #ifndef GULACHEK_GTREE_ENCODING_OPTIONAL_HPP
 #define GULACHEK_GTREE_ENCODING_OPTIONAL_HPP
 
-#include "gulachek/gtree/encoding/encoding.hpp"
+#include "gulachek/gtree/encoding.hpp"
+#include "gulachek/gtree/decoding.hpp"
 #include <optional>
 
 namespace gulachek::gtree
 {
-	template <typename U>
-	struct encoding<std::optional<U>>
+	template <typename T>
+	struct decoding<std::optional<T>>
 	{
-		using type = std::optional<U>;
-		using value_type = typename type::value_type;
+		std::optional<T> *p;
 
-		template <typename Opt, typename Tree>
-		static error encode(Opt &&val, Tree &tree)
+		cause decode(treeder &r)
 		{
-			if (val)
+			if (r.child_count())
 			{
-				tree.child_count(1);
-				return gtree::encode(*std::forward<Opt>(val), tree.child(0));
+				T val;
+				if (auto err = r.read(&val))
+				{
+					cause wrap{"error reading optional value"};
+					wrap.add_cause(err);
+					return wrap;
+				}
+				p->emplace(std::move(val));
+				return {};
 			}
 			else
 			{
-				tree.child_count(0);
+				*p = std::nullopt;
 				return {};
 			}
 		}
+	};
 
-		template <typename Tree>
-		static error decode(Tree &&tree, type &val)
+	template <typename T>
+	struct encoding<std::optional<T>>
+	{
+		const std::optional<T> &o;
+
+		cause encode(tree_writer &w)
 		{
-			if (tree.child_count())
-			{
-				typename type::value_type inner;
-				if (auto err = gtree::decode(std::forward<Tree>(tree).child(0), inner))
-					return err;
+			w.value(nullptr, 0);
 
-				val = std::move(inner);
+			if (o)
+			{
+				w.child_count(1);
+				if (auto err = w.write(*o))
+				{
+					cause wrap{"error writing optional value"};
+					wrap.add_cause(err);
+					return wrap;
+				}
 			}
 			else
 			{
-				val = std::nullopt;
+				w.child_count(0);
 			}
 
 			return {};
