@@ -2,6 +2,8 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
+#include "saboteur.hpp"
+
 #include "gulachek/gtree/read.hpp"
 #include "gulachek/gtree/write.hpp"
 #include "gulachek/gtree/tree.hpp"
@@ -17,30 +19,6 @@ using cause = gulachek::cause;
 namespace gt = gulachek::gtree;
 
 using vec = std::vector<std::uint8_t>;
-
-struct saboteur
-{
-	bool error = false;
-
-	cause gtree_decode(gt::treeder &r)
-	{
-		auto val = r.value();
-		if (val.empty())
-			return {};
-		else
-			return {"saboteur has value"};
-	}
-
-	cause gtree_encode(gt::tree_writer &w) const
-	{
-		w.value(nullptr, 0);
-		w.child_count(0);
-		if (error)
-			return {"saboteur has error"};
-		else
-			return {};
-	}
-};
 
 BOOST_AUTO_TEST_CASE(DecodeEmptyTreeIsEmptyVec)
 {
