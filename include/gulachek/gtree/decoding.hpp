@@ -117,8 +117,6 @@ namespace gulachek::gtree
 		if (read_count_ > nchildren_)
 			throw std::logic_error{"Reading too many trees"};
 
-		decoding<Decodable> dec{target};
-
 		std::size_t nbytes;
 		if (auto err = read_base128(is_, &nbytes))
 		{
@@ -153,6 +151,8 @@ namespace gulachek::gtree
 			wrap.add_cause(err);
 			return wrap;
 		}
+
+		decoding<Decodable> dec{target};
 
 		if (auto err = dec.decode(reader))
 		{
