@@ -4,6 +4,7 @@
 
 #include "gulachek/gtree/write.hpp"
 #include "gulachek/gtree/tree.hpp"
+#include "gulachek/gtree/encoding/string.hpp"
 #include <sstream>
 #include <vector>
 #include <cstdint>
@@ -174,4 +175,115 @@ BOOST_AUTO_TEST_CASE(AbcTree)
 	gt::write(os, tr);
 
 	BOOST_TEST(os.str() == "\x01\x61\x02\x01\x62\x00\x01\x63\x00"s);
+}
+
+struct write_string
+{
+	std::string s;
+
+	cause gtree_encode(gt::tree_writer &w) const
+	{
+		return w.write(s); // write s as tree suffices
+	}
+};
+
+BOOST_AUTO_TEST_CASE(WriteOtherObjectInPlaceOfEncodingIsOk)
+{
+	write_string w{"hello"};
+
+	std::ostringstream os;
+	auto err = gt::write(os, w);
+
+	BOOST_REQUIRE(!err);
+
+	BOOST_TEST(os.str() == "\x05hello\x00"s);
+}
+
+struct write_string_twice
+{
+	std::string s;
+
+	cause gtree_encode(gt::tree_writer &w) const
+	{
+		w.write(s);
+		return w.write(s); // write s as tree suffices
+	}
+};
+
+BOOST_AUTO_TEST_CASE(WriteOtherObjectTwiceIsLogicError)
+{
+	auto go = []{
+		write_string_twice w{"hello"};
+
+		std::ostringstream os;
+		gt::write(os, w);
+	};
+
+	BOOST_CHECK_THROW(go(), std::logic_error);
+}
+
+struct only_write_value
+{
+	cause gtree_encode(gt::tree_writer &w) const
+	{
+		int x = 3;
+		w.value(&x, sizeof(x));
+		return {};
+	}
+};
+
+BOOST_AUTO_TEST_CASE(OnlyWriteValueIsError)
+{
+	auto go = []{
+		only_write_value x;
+
+		std::ostringstream os;
+		gt::write(os, x);
+	};
+
+	BOOST_CHECK_THROW(go(), std::logic_error);
+}
+
+struct raw_val_writer
+{
+	cause gtree_encode(gt::tree_writer &w) const
+	{
+		auto hello = "hello"s;
+		w.write_raw(hello.data(), hello.size());
+		return {};
+	}
+};
+
+BOOST_AUTO_TEST_CASE(RawValueWriter)
+{
+	raw_val_writer x;
+
+	std::ostringstream os;
+	auto err = gt::write(os, x);
+
+	BOOST_TEST(!err);
+	BOOST_TEST(os.str() == "hello");
+}
+
+struct make_bad_stream
+{
+	std::ostream &os;
+
+	cause gtree_encode(gt::tree_writer &w) const
+	{
+		w.value(nullptr, 0);
+		w.child_count(0);
+		os.setstate(std::ios::badbit);
+		return {};
+	}
+};
+
+BOOST_AUTO_TEST_CASE(BadStreamIsError)
+{
+	std::ostringstream os;
+	make_bad_stream x{os};
+
+	auto err = gt::write(os, x);
+
+	BOOST_TEST(!!err);
 }

@@ -15,6 +15,7 @@ add_library(${core}
 	src/twos_complement.cpp
 	src/fd.cpp
 	src/cause.cpp
+	src/flat_tree.cpp
 	)
 
 target_include_directories(${core} PUBLIC

@@ -35,8 +35,7 @@ namespace gulachek::gtree
 			if (!p)
 				return {"cannot encode nullptr for std::shared_ptr"};
 
-			encoding<T> enc{*p};
-			return enc.encode(w);
+			return w.write(*p);
 		}
 	};
 }

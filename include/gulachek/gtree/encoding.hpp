@@ -44,7 +44,7 @@ namespace gulachek::gtree
 		public:
 			tree_writer(std::ostream &os) :
 				os_{os},
-				cursor_{cursor_position::children},
+				cursor_{cursor_position::value},
 				nchildren_{~0LU},
 				write_count_{0}
 			{}
@@ -71,19 +71,20 @@ namespace gulachek::gtree
 				nchildren_ = n;
 			}
 
+			cause write_raw(const void *buf, std::size_t nbytes)
+			{
+				track_write();
+				os_.write((const char*)buf, nbytes);
+				return stream_ok();
+			}
+
 			template <encodable T>
 			cause write(const T &c)
 			{
-				if (cursor_ != cursor_position::children)
-					throw std::logic_error{"Must write children immediately after child count"};
-
-				if (++write_count_ > nchildren_)
-					throw std::logic_error{"Wrote too many children"};
+				track_write();
 
 				encoding<T> enc{c};
-
 				tree_writer writer{os_};
-				writer.cursor_ = cursor_position::value;
 
 				if (auto err = enc.encode(writer))
 				{
@@ -93,10 +94,15 @@ namespace gulachek::gtree
 					return wrapper;
 				}
 
-				if (writer.write_count_ < writer.nchildren_)
-					throw std::logic_error{"Must write appropriate number of children"};
+				if (writer.cursor_ != cursor_position::value)
+				{
+					if (writer.write_count_ < writer.nchildren_)
+					{
+						throw std::logic_error{"Must write appropriate number of children"};
+					}
+				}
 
-				return {};
+				return stream_ok();
 			}
 
 		private:
@@ -104,6 +110,34 @@ namespace gulachek::gtree
 			cursor_position cursor_;
 			std::size_t nchildren_;
 			std::size_t write_count_;
+
+			void track_write()
+			{
+				++write_count_;
+
+				if (cursor_ == cursor_position::value)
+				{
+					if (write_count_ > 1)
+					{
+						throw std::logic_error{"Can only write one tree"};
+					}
+				}
+				else if (cursor_ == cursor_position::child_count)
+				{
+					throw std::logic_error{"Must write child count instead of starting new tree"};
+				}
+				else
+				{
+					if (write_count_ > nchildren_)
+						throw std::logic_error{"Wrote too many children"};
+				}
+			}
+
+			cause stream_ok()
+			{
+				if (os_) return {};
+				return {"bad stream"};
+			}
 	};
 
 	template <typename T>
