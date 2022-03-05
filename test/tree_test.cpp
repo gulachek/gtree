@@ -89,3 +89,63 @@ BOOST_AUTO_TEST_CASE(OptimizeReadErrorIsError)
 
 	BOOST_TEST(!!err);
 }
+
+BOOST_AUTO_TEST_CASE(OptimizeWriteInt)
+{
+	gt::tree tr;
+	int n = 10;
+
+	auto err = tr.write(n);
+	BOOST_REQUIRE(!err);
+
+	int out = 0;
+	gt::translate(tr, &out);
+
+	BOOST_TEST(out == 10);
+}
+
+BOOST_AUTO_TEST_CASE(OptimizeWriteVec)
+{
+	gt::tree tr;
+	std::vector<int> v = { 1, 2, 3 };
+
+	auto err = tr.write(v);
+	BOOST_REQUIRE(!err);
+
+	std::vector<int> out;
+	gt::translate(tr, &out);
+
+	BOOST_TEST(out == v, tt::per_element());
+}
+
+BOOST_AUTO_TEST_CASE(OptimizeWriteMap)
+{
+	gt::tree tr;
+	std::map<std::string, int> m = {
+		{"foo", 1},
+		{"bar", 2}
+	};
+
+	auto err = tr.write(m);
+	BOOST_REQUIRE(!err);
+
+	std::map<std::string, int> out;
+	gt::translate(tr, &out);
+
+	BOOST_TEST(out.size() == 2);
+	BOOST_TEST(out["foo"] == 1);
+	BOOST_TEST(out["bar"] == 2);
+}
+
+BOOST_AUTO_TEST_CASE(OptimizeWriteErrorIsError)
+{
+	gt::tree tr;
+	std::map<std::string, saboteur> m = {
+		{"foo", {false}},
+		{"bar", {true}}
+	};
+
+	auto err = tr.write(m);
+
+	BOOST_TEST(!!err);
+}

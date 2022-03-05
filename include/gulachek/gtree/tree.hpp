@@ -64,6 +64,10 @@ namespace gulachek::gtree
 			template <decodable D>
 			cause read(D *dest) const;
 
+			// optimized translation to tree
+			template <encodable E>
+			cause write(const E &src);
+
 		private:
 			std::vector<std::uint8_t> value_;
 			std::vector<tree> children_;
@@ -93,13 +97,43 @@ namespace gulachek::gtree
 			const tree* tr() const;
 	};
 
-	// optimized translation from tree
 	template <decodable D>
 	cause tree::read(D *dest) const
 	{
 		tree_treeder_stream stream{this};
 		treeder reader{stream};
 		return reader.read(dest);
+	}
+
+	class tree_tree_writer_stream : public tree_writer_stream
+	{
+		public:
+			tree_tree_writer_stream(tree *tr);
+
+			void value(const void *data, std::size_t n) override;
+			void child_count(std::size_t n) override;
+			bool ok() override;
+
+		private:
+			struct elem
+			{
+				tree *tr;
+				std::size_t child;
+			};
+
+			tree base_;
+			std::stack<elem> stack_;
+
+			tree* tr();
+			void next();
+	};
+
+	template <encodable E>
+	cause tree::write(const E &src)
+	{
+		tree_tree_writer_stream stream{this};
+		tree_writer writer{stream};
+		return writer.write(src);
 	}
 }
 

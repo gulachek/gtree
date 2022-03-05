@@ -113,4 +113,52 @@ namespace gulachek::gtree
 	{
 		return tr()->child_count();
 	}
+
+	tree_tree_writer_stream::tree_tree_writer_stream(tree *tr)
+	{
+		base_.child_count(2);
+		stack_.push({&base_, 1});
+		stack_.push({tr, 0});
+	}
+
+	void tree_tree_writer_stream::value(const void *data, std::size_t n)
+	{
+		tr()->value({(const std::uint8_t*)data, n});
+	}
+
+	void tree_tree_writer_stream::child_count(std::size_t n)
+	{
+		tr()->child_count(n);
+
+		while (!stack_.empty())
+		{
+			auto &e = stack_.top();
+			auto cc = e.tr->child_count();
+
+			if (e.child < cc)
+			{
+				stack_.push({&e.tr->child(e.child), 0});
+				++e.child;
+				return;
+			}
+			else
+			{
+				stack_.pop();
+			}
+		}
+	}
+
+	bool tree_tree_writer_stream::ok()
+	{
+		return !stack_.empty();
+	}
+
+	tree* tree_tree_writer_stream::tr()
+	{
+		return stack_.top().tr;
+	}
+
+	void tree_tree_writer_stream::next()
+	{
+	}
 }
