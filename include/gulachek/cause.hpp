@@ -69,6 +69,10 @@ namespace gulachek
 			}
 
 			template <user_defined_codeable T>
+			void ucode(T c)
+			{ ucode_ = static_cast<std::size_t>(c); }
+
+			template <user_defined_codeable T>
 			bool has_ucode(T c) const
 			{ return ucode_ == static_cast<std::size_t>(c); }
 

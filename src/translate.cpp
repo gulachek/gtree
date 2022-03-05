@@ -18,24 +18,52 @@ namespace gulachek::gtree
 
 	translate_stream::~translate_stream() {}
 
-	void translate_stream::translate(
-					const std::function<void()> &read,
-					const std::function<void()> &write
+	cause translate_stream::translate(
+					const std::function<cause()> &read,
+					const std::function<cause()> &write
 			)
 	{
-		boost::fibers::fiber read_fib{read};
-		boost::fibers::fiber write_fib{write};
+		cause wrap;
+
+		boost::fibers::fiber read_fib{[&]{
+			auto err = read();
+			if (err && !wrap)
+			{
+				wrap << "error decoding value";
+				wrap.add_cause(err);
+				wrap.ucode(translate_error::decoding);
+			}
+			done_reading(!err);
+		}};
+
+		boost::fibers::fiber write_fib{[&]{
+			auto err = write();
+			if (err && !wrap)
+			{
+				wrap << "error encoding value";
+				wrap.add_cause(err);
+				wrap.ucode(translate_error::encoding);
+			}
+			done_writing();
+		}};
 
 		read_fib.join();
-		done_reading();
-
 		write_fib.join();
+		return wrap;
 	}
 
-	void translate_stream::done_reading()
+	void translate_stream::done_reading(bool ok)
 	{
+		ok_ = ok;
 		is_reading_ = false;
 		pfiber_->writing.notify_one();
+	}
+
+	void translate_stream::done_writing()
+	{
+		ok_ = false;
+		is_reading_ = true;
+		pfiber_->reading.notify_one();
 	}
 
 	void translate_stream::value(const void *data, std::size_t n)
@@ -58,7 +86,7 @@ namespace gulachek::gtree
 	}
 
 	bool translate_stream::ok()
-	{ return true; }
+	{ return ok_; }
 
 	cause translate_stream::next()
 	{
@@ -70,7 +98,9 @@ namespace gulachek::gtree
 		while (!is_reading_)
 			pfiber_->reading.wait(lck);
 
-		return {};
+		cause err;
+		if (!ok_) { err << "bad write"; }
+		return err;
 	}
 
 	std::size_t translate_stream::size() const

@@ -202,9 +202,9 @@ namespace gulachek::gtree
 				i < reader.nchildren_; ++i)
 		{
 			ignore ig;
-			decoding<ignore> ig_dec{&ig};
+			treeder ig_reader{stream_};
 
-			if (auto err = dec.decode(reader))
+			if (auto err = ig_reader.read(&ig))
 			{
 				cause wrap{read_error::bad_children, "handling excess child"};
 				wrap.add_cause(err);

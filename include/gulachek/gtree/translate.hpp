@@ -9,6 +9,12 @@
 
 namespace gulachek::gtree
 {
+	enum class translate_error
+	{
+		encoding,
+		decoding
+	};
+
 	class translate_stream :
 		public treeder_stream, public tree_writer_stream
 	{
@@ -16,9 +22,9 @@ namespace gulachek::gtree
 			translate_stream();
 			~translate_stream();
 
-			void translate(
-					const std::function<void()> &read,
-					const std::function<void()> &write
+			cause translate(
+					const std::function<cause()> &read,
+					const std::function<cause()> &write
 					);
 
 			void value(const void *data, std::size_t n) override;
@@ -39,8 +45,10 @@ namespace gulachek::gtree
 			std::size_t child_count_;
 
 			bool is_reading_ = true;
+			bool ok_ = true;
 
-			void done_reading();
+			void done_reading(bool ok);
+			void done_writing();
 	};
 
 	template <encodable E, decodable D>
@@ -51,13 +59,10 @@ namespace gulachek::gtree
 		treeder r{translator};
 		tree_writer w{translator};
 
-		cause rerr, werr;
-		translator.translate(
-			[&]{ rerr = r.read(dest); },
-			[&]{ werr = w.write(src); }
+		return translator.translate(
+			[&]{ return r.read(dest); },
+			[&]{ return w.write(src); }
 			);
-
-		return {};
 	}
 }
 
