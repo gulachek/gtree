@@ -3,6 +3,14 @@
 
 namespace gulachek::gtree
 {
+	flat_tree::flat_tree(const flat_tree &other)
+	{
+		auto &ss = const_cast<std::strstream&>(other.ss_);
+		ss_.write(ss.str(), ss.pcount());
+		ss_.seekg(0, std::ios::beg);
+		ss.freeze(false);
+	}
+
 	std::span<const std::uint8_t> flat_tree::buf() const
 	{
 		// i promise i'll be a good boy

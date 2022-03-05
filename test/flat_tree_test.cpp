@@ -124,3 +124,23 @@ BOOST_AUTO_TEST_CASE(EncodeVector)
 
 	BOOST_TEST(out == vals, tt::per_element());
 }
+
+BOOST_AUTO_TEST_CASE(CanCopyFlatTree)
+{
+	vec vals = { 1, 2, 3 };
+	gt::flat_tree tr;
+
+	tr.write(vals);
+
+	gt::flat_tree cpy{tr};
+
+	vec out;
+	tr.read(&out);
+
+	BOOST_TEST(out == vals, tt::per_element());
+}
+
+BOOST_AUTO_TEST_CASE(CanMoveConstruct)
+{
+	BOOST_TEST(std::is_move_constructible_v<gt::flat_tree>);
+}

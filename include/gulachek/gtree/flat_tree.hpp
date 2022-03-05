@@ -15,6 +15,8 @@ namespace gulachek::gtree
 	{
 		public:
 			flat_tree() = default;
+			flat_tree(flat_tree &&other) = default;
+			flat_tree(const flat_tree &other);
 
 			std::span<const std::uint8_t> buf() const;
 
