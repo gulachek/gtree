@@ -32,6 +32,40 @@ namespace gulachek::gtree
 		{enc.encode(writer)} -> my_same_as<cause>;
 	};
 
+	struct tree_writer_stream
+	{
+		virtual ~tree_writer_stream() {}
+
+		virtual void value(const void *data, std::size_t nbytes) = 0;
+		virtual void child_count(std::size_t n) = 0;
+		virtual bool ok() = 0;
+	};
+
+	class ostream_tree_writer_stream : public tree_writer_stream
+	{
+		public:
+			ostream_tree_writer_stream(std::ostream &os) :
+				os_{os}
+			{}
+
+			void value(const void *data, std::size_t nbytes) override
+			{
+				write_base128(os_, nbytes);
+				os_.write((const char*)data, nbytes);
+			}
+
+			void child_count(std::size_t n) override
+			{
+				write_base128(os_, n);
+			}
+
+			bool ok() override
+			{ return !!os_; }
+
+		private:
+			std::ostream &os_;
+	};
+
 	class tree_writer
 	{
 		enum class cursor_position
@@ -42,8 +76,8 @@ namespace gulachek::gtree
 		};
 
 		public:
-			tree_writer(std::ostream &os) :
-				os_{os},
+			tree_writer(tree_writer_stream &s) :
+				stream_{s},
 				cursor_{cursor_position::value},
 				nchildren_{~0LU},
 				write_count_{0}
@@ -54,8 +88,7 @@ namespace gulachek::gtree
 				if (cursor_ != cursor_position::value)
 					throw std::logic_error{"Must write value immediately"};
 
-				write_base128(os_, nbytes);
-				os_.write((const char*)buf, nbytes);
+				stream_.value(buf, nbytes);
 
 				cursor_ = cursor_position::child_count;
 			}
@@ -65,18 +98,20 @@ namespace gulachek::gtree
 				if (cursor_ != cursor_position::child_count)
 					throw std::logic_error{"Must write child count immediately after value"};
 
-				write_base128(os_, n);
+				stream_.child_count(n);
 
 				cursor_ = cursor_position::children;
 				nchildren_ = n;
 			}
 
+			/*
 			cause write_raw(const void *buf, std::size_t nbytes)
 			{
 				track_write();
 				os_.write((const char*)buf, nbytes);
 				return stream_ok();
 			}
+			*/
 
 			template <encodable T>
 			cause write(const T &c)
@@ -84,7 +119,7 @@ namespace gulachek::gtree
 				track_write();
 
 				encoding<T> enc{c};
-				tree_writer writer{os_};
+				tree_writer writer{stream_};
 
 				if (auto err = enc.encode(writer))
 				{
@@ -106,7 +141,7 @@ namespace gulachek::gtree
 			}
 
 		private:
-			std::ostream &os_;
+			tree_writer_stream &stream_;
 			cursor_position cursor_;
 			std::size_t nchildren_;
 			std::size_t write_count_;
@@ -135,7 +170,7 @@ namespace gulachek::gtree
 
 			cause stream_ok()
 			{
-				if (os_) return {};
+				if (stream_.ok()) return {};
 				return {"bad stream"};
 			}
 	};

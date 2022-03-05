@@ -30,6 +30,7 @@ auto make_vec(const gt::flat_tree &tr)
 	return vec{val.begin(), val.end()};
 }
 
+/*
 BOOST_AUTO_TEST_CASE(DecodeEmpty)
 {
 	std::size_t n = 0;
@@ -139,6 +140,7 @@ BOOST_AUTO_TEST_CASE(CanCopyFlatTree)
 
 	BOOST_TEST(out == vals, tt::per_element());
 }
+*/
 
 BOOST_AUTO_TEST_CASE(CanMoveConstruct)
 {

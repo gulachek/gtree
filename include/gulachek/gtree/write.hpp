@@ -19,7 +19,8 @@ namespace gulachek::gtree
 	template <encodable T>
 	cause write(std::ostream &os, const T &val)
 	{
-		tree_writer writer{os};
+		ostream_tree_writer_stream stream{os};
+		tree_writer writer{stream};
 		return writer.write(val);
 	}
 

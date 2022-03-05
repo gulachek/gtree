@@ -244,6 +244,7 @@ BOOST_AUTO_TEST_CASE(OnlyWriteValueIsError)
 	BOOST_CHECK_THROW(go(), std::logic_error);
 }
 
+/*
 struct raw_val_writer
 {
 	cause gtree_encode(gt::tree_writer &w) const
@@ -264,6 +265,7 @@ BOOST_AUTO_TEST_CASE(RawValueWriter)
 	BOOST_TEST(!err);
 	BOOST_TEST(os.str() == "hello");
 }
+*/
 
 struct make_bad_stream
 {

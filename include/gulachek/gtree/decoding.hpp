@@ -42,19 +42,87 @@ namespace gulachek::gtree
 		bad_children
 	};
 
+	struct treeder_stream
+	{
+		virtual ~treeder_stream(){}
+		virtual cause next() = 0;
+
+		virtual std::size_t size() const = 0;
+		virtual const std::uint8_t* data() const = 0;
+		virtual std::size_t child_count() const = 0;
+	};
+
+	class istream_treeder_stream : public treeder_stream
+	{
+		public:
+			istream_treeder_stream(std::istream &is) :
+				is_{is}
+			{}
+
+			cause next() override
+			{
+				std::size_t nbytes;
+				if (auto err = read_base128(is_, &nbytes))
+				{
+					if (err.is_eof())
+						return err;
+
+					cause wrap{read_error::incomplete_value_size};
+					wrap << "error reading value size";
+					wrap.add_cause(err);
+					return wrap;
+				}
+
+				buf_.resize(nbytes);
+				is_.read((char*)buf_.data(), nbytes);
+
+				auto read_count = is_.gcount();
+				if (read_count != nbytes)
+				{
+					cause err{read_error::incomplete_value};
+					err << "reading tree value expected " << nbytes <<
+						" bytes, actual: " << read_count;
+					return err;
+				}
+
+				if (auto err = read_base128(is_, &child_count_))
+				{
+					cause wrap{read_error::incomplete_child_count};
+					wrap << "error reading child count";
+					wrap.add_cause(err);
+					return wrap;
+				}
+
+				return {};
+			}
+
+			std::size_t size() const override
+			{ return buf_.size(); }
+
+			const std::uint8_t* data() const override
+			{ return buf_.data(); }
+
+			std::size_t child_count() const override
+			{ return child_count_; }
+
+		private:
+			std::istream &is_;
+			std::vector<std::uint8_t> buf_;
+			std::size_t child_count_;
+	};
+
 	class treeder
 	{
 		public:
-			treeder(std::istream &is) :
-				is_{is},
+			treeder(treeder_stream &s) :
+				stream_{s},
 				nchildren_{1},
-				read_count_{0},
-				pbuf_{&buf_}
+				read_count_{0}
 			{}
 
 			std::span<const std::uint8_t> value() const
 			{
-				return {pbuf_->data(), pbuf_->size()};
+				return {stream_.data(), stream_.size()};
 			}
 
 			std::size_t child_count() const
@@ -66,11 +134,9 @@ namespace gulachek::gtree
 			cause read(Decodable *target);
 
 		private:
-			std::istream &is_;
+			treeder_stream &stream_;
 			std::size_t nchildren_;
 			std::size_t read_count_;
-			std::vector<std::uint8_t> buf_;
-			std::vector<std::uint8_t> *pbuf_;
 	};
 
 	template <typename T>
@@ -117,40 +183,11 @@ namespace gulachek::gtree
 		if (read_count_ > nchildren_)
 			throw std::logic_error{"Reading too many trees"};
 
-		std::size_t nbytes;
-		if (auto err = read_base128(is_, &nbytes))
-		{
-			if (err.is_eof())
-				return err;
-
-			cause wrap{read_error::incomplete_value_size};
-			wrap << "error reading value size";
-			wrap.add_cause(err);
-			return wrap;
-		}
-
-		pbuf_->resize(nbytes);
-		is_.read((char*)pbuf_->data(), nbytes);
-
-		auto read_count = is_.gcount();
-		if (read_count != nbytes)
-		{
-			cause err{read_error::incomplete_value};
-			err << "reading tree value expected " << nbytes <<
-				" bytes, actual: " << read_count;
+		if (auto err = stream_.next())
 			return err;
-		}
 
-		treeder reader{is_};
-		reader.pbuf_ = pbuf_;
-
-		if (auto err = read_base128(is_, &reader.nchildren_))
-		{
-			cause wrap{read_error::incomplete_child_count};
-			wrap << "error reading child count";
-			wrap.add_cause(err);
-			return wrap;
-		}
+		treeder reader{stream_};
+		reader.nchildren_ = stream_.child_count();
 
 		decoding<Decodable> dec{target};
 

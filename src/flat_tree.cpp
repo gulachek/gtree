@@ -41,7 +41,8 @@ namespace gulachek::gtree
 			return {};
 		}
 
-		return w.write_raw(b.data(), b.size());
+		return {};
+		//return w.write_raw(b.data(), b.size());
 	}
 
 	cause flat_tree::gtree_decode(treeder &r)

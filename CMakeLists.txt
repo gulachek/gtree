@@ -5,6 +5,7 @@ project(gtree)
 find_package(Boost REQUIRED
 	system
 	iostreams
+	fiber
 	unit_test_framework
 	)
 
@@ -16,6 +17,7 @@ add_library(${core}
 	src/fd.cpp
 	src/cause.cpp
 	src/flat_tree.cpp
+	src/translate.cpp
 	)
 
 target_include_directories(${core} PUBLIC
@@ -30,6 +32,7 @@ target_compile_features(${core}
 target_link_libraries(${core}
 	PUBLIC Boost::boost # for fusion encoding - consider moving
 	PRIVATE Boost::iostreams
+	PRIVATE Boost::fiber
 	)
 
 file(GLOB tests "test/*test.cpp")
