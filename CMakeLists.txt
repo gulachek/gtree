@@ -16,7 +16,6 @@ add_library(${core}
 	src/twos_complement.cpp
 	src/fd.cpp
 	src/cause.cpp
-	src/flat_tree.cpp
 	src/translate.cpp
 	)
 

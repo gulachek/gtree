@@ -104,15 +104,6 @@ namespace gulachek::gtree
 				nchildren_ = n;
 			}
 
-			/*
-			cause write_raw(const void *buf, std::size_t nbytes)
-			{
-				track_write();
-				os_.write((const char*)buf, nbytes);
-				return stream_ok();
-			}
-			*/
-
 			template <encodable T>
 			cause write(const T &c)
 			{
