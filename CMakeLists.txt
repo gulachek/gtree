@@ -17,6 +17,7 @@ add_library(${core}
 	src/fd.cpp
 	src/cause.cpp
 	src/translate.cpp
+	src/tree.cpp
 	)
 
 target_include_directories(${core} PUBLIC

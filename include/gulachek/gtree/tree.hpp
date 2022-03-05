@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <stack>
 
 namespace gulachek::gtree
 {
@@ -45,67 +46,61 @@ namespace gulachek::gtree
 				children_{}
 			{}
 
-			bool empty() const
-			{ return value_.empty() && children_.empty(); }
+			bool empty() const;
 
-			value_type value() const
-			{ return {value_.data(), value_.size()}; }
+			value_type value() const;
+			void value(const value_type &val);
 
-			void value(const value_type &val)
-			{
-				value_ = std::vector<std::uint8_t>{val.begin(), val.end()};
-			}
+			std::size_t child_count() const;
+			void child_count(std::size_t n);
 
-			std::size_t child_count() const
-			{ return children_.size(); }
+			const tree& child(std::size_t i) const;
+			tree& child(std::size_t i);
 
-			void child_count(std::size_t n)
-			{ children_.resize(n); }
+			cause gtree_encode(tree_writer &writer) const;
+			cause gtree_decode(treeder &reader);
 
-			const tree& child(std::size_t i) const
-			{ return children_[i]; }
-
-			tree& child(std::size_t i)
-			{ return children_[i]; }
-
-			cause gtree_encode(tree_writer &writer) const
-			{
-				writer.value(value_.data(), value_.size());
-
-				auto cc = child_count();
-				writer.child_count(cc);
-
-				for (std::size_t i = 0; i < cc; ++i)
-					writer.write(children_[i]);
-
-				return {};
-			}
-
-			cause gtree_decode(treeder &reader)
-			{
-				value(reader.value());
-
-				auto n = reader.child_count();
-				child_count(n);
-
-				for (std::size_t i = 0; i < n; ++i)
-				{
-					if (auto err = reader.read(&children_[i]))
-					{
-						cause wrap;
-						wrap << "error decoding tree child " << i;
-						wrap.add_cause(err);
-						return wrap;
-					}
-				}
-
-				return {};
-			}
+			// optimized translation from tree
+			template <decodable D>
+			cause read(D *dest) const;
 
 		private:
 			std::vector<std::uint8_t> value_;
 			std::vector<tree> children_;
 	};
+
+	class tree_treeder_stream : public treeder_stream
+	{
+		public:
+			tree_treeder_stream(const tree *tr);
+
+			cause next() override;
+			std::size_t size() const override;
+			const std::uint8_t* data() const override;
+			std::size_t child_count() const override;
+
+		private:
+			struct elem
+			{
+				const tree *tr;
+				std::size_t child;
+			};
+
+			tree base_;
+			const tree* pending_;
+			std::stack<elem> stack_;
+
+			const tree* tr() const;
+	};
+
+	// optimized translation from tree
+	template <decodable D>
+	cause tree::read(D *dest) const
+	{
+		tree_treeder_stream stream{this};
+		treeder reader{stream};
+		return reader.read(dest);
+	}
 }
 
 #endif
