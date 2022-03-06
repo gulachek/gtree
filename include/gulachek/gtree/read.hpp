@@ -30,7 +30,18 @@ namespace gulachek::gtree
 	cause read_fd(int fd, Decodable *target)
 	{
 		fd_istream_adapter adapt{fd};
-		return read(adapt.stream(), target);
+		if (auto err = read(adapt.stream(), target))
+		{
+			if (err.is_eof())
+				return err;
+
+			cause wrap;
+			wrap << "error reading fd " << fd;
+			wrap.add_cause(std::move(err));
+			return wrap;
+		}
+
+		return {};
 	}
 
 	template <decodable Decodable>
@@ -45,7 +56,18 @@ namespace gulachek::gtree
 			return err;
 		}
 
-		return read(f, target);
+		if (auto err = read(f, target))
+		{
+			if (err.is_eof())
+				return err;
+
+			cause wrap;
+			wrap << "error reading file " << p;
+			wrap.add_cause(std::move(err));
+			return wrap;
+		}
+
+		return {};
 	}
 }
 

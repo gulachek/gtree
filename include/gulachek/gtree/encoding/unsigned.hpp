@@ -22,8 +22,8 @@ namespace gulachek::gtree
 		if (size > width)
 		{
 			cause err;
-			err << "Unsigned integer overflow. '" << size << "' cannot fit in '"
-				<< width << "' byte(s)";
+			err << "Unsigned integer overflow. '" << size << "' bytes "
+				"cannot fit in '" << width << "' byte(s)";
 			return err;
 		}
 

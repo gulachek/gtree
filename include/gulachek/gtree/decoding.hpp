@@ -193,8 +193,8 @@ namespace gulachek::gtree
 
 		if (auto err = dec.decode(reader))
 		{
-			cause wrap{read_error::bad_children, "handling tree children"};
-			wrap.add_cause(err);
+			cause wrap{read_error::bad_children, "decoding tree"};
+			wrap.add_cause(std::move(err));
 			return wrap;
 		}
 
@@ -207,7 +207,7 @@ namespace gulachek::gtree
 			if (auto err = ig_reader.read(&ig))
 			{
 				cause wrap{read_error::bad_children, "handling excess child"};
-				wrap.add_cause(err);
+				wrap.add_cause(std::move(err));
 				return wrap;
 			}
 		}
