@@ -6,6 +6,7 @@
 #include "saboteur.hpp"
 
 #include "gulachek/gtree/tree.hpp"
+#include "gulachek/gtree/translate.hpp"
 #include "gulachek/gtree/encoding/tuple.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
@@ -120,4 +121,53 @@ BOOST_AUTO_TEST_CASE(EncodeErrorInElemIsError)
 	auto err = cvt(tup, &tr);
 
 	BOOST_TEST(!!err);
+}
+
+// Classes
+class strint
+{
+	std::string str_;
+	std::size_t int_;
+
+	public:
+		strint() = default;
+
+		std::string s() const { return str_; }
+		std::string s(std::string s) { return str_ = std::move(s); }
+
+		std::size_t n() const { return int_; }
+		std::size_t n(std::size_t n) { return int_ = n; }
+
+		static constexpr auto gtree_tuple = std::make_tuple(
+				&strint::str_,
+				&strint::int_
+				);
+};
+
+BOOST_AUTO_TEST_CASE(EncodeStrintClass)
+{
+	strint x;
+	x.s("hello");
+	x.n(3);
+
+	std::tuple<std::string, std::size_t> t;
+	auto err = gt::translate(x, &t);
+
+	BOOST_REQUIRE(!err);
+
+	BOOST_TEST(std::get<0>(t) == "hello");
+	BOOST_TEST(std::get<1>(t) == 3);
+}
+
+BOOST_AUTO_TEST_CASE(DecodeStrintClass)
+{
+	std::tuple<std::string, std::size_t> t{"hello", 3};
+	strint x;
+
+	auto err = gt::translate(t, &x);
+
+	BOOST_REQUIRE(!err);
+
+	BOOST_TEST(x.s() == "hello");
+	BOOST_TEST(x.n() == 3);
 }
