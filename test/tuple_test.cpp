@@ -138,7 +138,7 @@ class strint
 		std::size_t n() const { return int_; }
 		std::size_t n(std::size_t n) { return int_ = n; }
 
-		static constexpr auto gtree_tuple = std::make_tuple(
+		GTREE_TUPLE_MEMBERS(
 				&strint::str_,
 				&strint::int_
 				);

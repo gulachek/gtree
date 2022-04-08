@@ -7,6 +7,11 @@
 #include <tuple>
 #include <type_traits>
 
+#define GTREE_TUPLE_MEMBERS(...) \
+	static constexpr auto gtree_tuple = std::make_tuple(\
+			__VA_ARGS__\
+			)
+
 namespace gulachek::gtree
 {
 	// class tuples
