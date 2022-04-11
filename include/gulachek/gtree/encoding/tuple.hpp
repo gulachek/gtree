@@ -204,6 +204,28 @@ namespace gulachek::gtree
 			return encode_elem<index+1>(w);
 		}
 	};
+
+	template <typename ...Elems>
+	cause read_tuple(treeder &r, Elems *...elems)
+	{
+		using tuple_type =
+			std::tuple<std::add_lvalue_reference_t<Elems>...>;
+
+		tuple_type impl{*elems...};
+
+		decoding<tuple_type> dec{&impl};
+		return dec.decode(r);
+	}
+
+	template <typename ...Elems>
+	cause write_tuple(tree_writer &w, const Elems &...elems)
+	{
+		using tuple_type = std::tuple<const Elems &...>;
+		tuple_type impl{elems...};
+
+		encoding<tuple_type> enc{impl};
+		return enc.encode(w);
+	}
 }
 
 #endif

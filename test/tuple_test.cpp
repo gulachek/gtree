@@ -171,3 +171,41 @@ BOOST_AUTO_TEST_CASE(DecodeStrintClass)
 	BOOST_TEST(x.s() == "hello");
 	BOOST_TEST(x.n() == 3);
 }
+
+struct my_pair
+{
+	std::string s;
+	std::size_t n;
+
+	cause gtree_decode(gt::treeder &r)
+	{ return gt::read_tuple(r, &s, &n); }
+
+	cause gtree_encode(gt::tree_writer &w) const
+	{ return gt::write_tuple(w, s, n); }
+};
+
+BOOST_AUTO_TEST_CASE(HelperFunDecode)
+{
+	std::tuple<std::string, std::size_t> tup{"hello", 3};
+	my_pair p;
+
+	auto err = gt::translate(tup, &p);
+
+	BOOST_REQUIRE(!err);
+
+	BOOST_TEST(p.s == "hello");
+	BOOST_TEST(p.n == 3);
+}
+
+BOOST_AUTO_TEST_CASE(HelperFunEncode)
+{
+	my_pair p{"hello", 3};
+	std::tuple<std::string, std::size_t> tup;
+
+	auto err = gt::translate(p, &tup);
+
+	BOOST_REQUIRE(!err);
+
+	BOOST_TEST(std::get<0>(tup) == "hello");
+	BOOST_TEST(std::get<1>(tup) == 3);
+}
