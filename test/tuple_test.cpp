@@ -5,8 +5,7 @@
 #include "convert.hpp"
 #include "saboteur.hpp"
 
-#include "gulachek/gtree/tree.hpp"
-#include "gulachek/gtree/translate.hpp"
+#include "gulachek/gtree.hpp"
 #include "gulachek/gtree/encoding/tuple.hpp"
 #include "gulachek/gtree/encoding/unsigned.hpp"
 #include "gulachek/gtree/encoding/string.hpp"
@@ -177,12 +176,10 @@ struct my_pair
 	std::string s;
 	std::size_t n;
 
-	cause gtree_decode(gt::treeder &r)
-	{ return gt::read_tuple(r, &s, &n); }
-
-	cause gtree_encode(gt::tree_writer &w) const
-	{ return gt::write_tuple(w, s, n); }
+	GTREE_DECLARE_MEMBER_FNS
 };
+
+GTREE_DEFINE_TUPLE_MEMBER_FNS(my_pair, s, n)
 
 BOOST_AUTO_TEST_CASE(HelperFunDecode)
 {

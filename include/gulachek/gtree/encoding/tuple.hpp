@@ -7,11 +7,6 @@
 #include <tuple>
 #include <type_traits>
 
-#define GTREE_TUPLE_MEMBERS(...) \
-	static constexpr auto gtree_tuple = std::make_tuple(\
-			__VA_ARGS__\
-			)
-
 namespace gulachek::gtree
 {
 	// class tuples
@@ -218,6 +213,12 @@ namespace gulachek::gtree
 	}
 
 	template <typename ...Elems>
+	cause read_tuple_lvalref(treeder &r, Elems &...elems)
+	{
+		return read_tuple(r, &elems...);
+	}
+
+	template <typename ...Elems>
 	cause write_tuple(tree_writer &w, const Elems &...elems)
 	{
 		using tuple_type = std::tuple<const Elems &...>;
@@ -226,6 +227,22 @@ namespace gulachek::gtree
 		encoding<tuple_type> enc{impl};
 		return enc.encode(w);
 	}
+}
+
+#define GTREE_TUPLE_MEMBERS(...) \
+	static constexpr auto gtree_tuple = std::make_tuple(\
+			__VA_ARGS__\
+			)
+
+#define GTREE_DEFINE_TUPLE_MEMBER_FNS(TYPENAME, ...) \
+gulachek::cause TYPENAME ::gtree_decode(gulachek::gtree::treeder &r) \
+{ \
+	return gulachek::gtree::read_tuple_lvalref(r, __VA_ARGS__); \
+} \
+\
+gulachek::cause TYPENAME ::gtree_encode(gulachek::gtree::tree_writer &w) const \
+{ \
+	return gulachek::gtree::write_tuple(w, __VA_ARGS__); \
 }
 
 #endif
