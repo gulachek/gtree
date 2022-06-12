@@ -2,6 +2,7 @@ const { task, series } = require('gulp');
 const { BuildSystem } = require('gulpachek');
 const { Cpp } = require('gulpachek/cpp');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
 const sys = new BuildSystem(__dirname);
 const cpp = new Cpp(sys);
@@ -25,6 +26,7 @@ lib.include('include');
 lib.link(boost.fiber);
 
 const buildRules = [];
+const tests = [];
 
 // not ideal that this is using relative path. should be relative to srcdir
 for (const f of fs.readdirSync('test')) {
@@ -37,6 +39,17 @@ for (const f of fs.readdirSync('test')) {
 	test.link(boost.test);
 	test.include('test/include');
 	buildRules.push(test);
+
+	const runTest = () => {
+		return spawn(test.abs(), [], { stdio: 'inherit' });
+	};
+
+	Object.defineProperty(runTest, 'name', {
+		value: test.path().toString(),
+		writable: false
+	});
+
+	tests.push(runTest);
 }
 
 const gtree2hex = cpp.executable('gtree2hex',
@@ -53,4 +66,6 @@ const nums = cpp.executable('nums',
 nums.link(lib);
 buildRules.push(nums);
 
-task('default', series(...buildRules.map((rule) => sys.rule(rule))));
+task('build', series(...buildRules.map((rule) => sys.rule(rule))));
+task('default', series('build'));
+task('test', series(...tests));
