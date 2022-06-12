@@ -67,5 +67,5 @@ nums.link(lib);
 buildRules.push(nums);
 
 task('build', series(...buildRules.map((rule) => sys.rule(rule))));
-task('default', series('build'));
-task('test', series(...tests));
+task('test', series('build', ...tests));
+task('default', series('test'));
