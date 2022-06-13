@@ -1,4 +1,4 @@
-const { task, series } = require('gulp');
+const { task, series, src, dest } = require('gulp');
 const { BuildSystem } = require('gulpachek');
 const { Cpp } = require('gulpachek/cpp');
 const fs = require('fs');
@@ -69,3 +69,31 @@ buildRules.push(nums);
 task('build', series(...buildRules.map((rule) => sys.rule(rule))));
 task('test', series('build', ...tests));
 task('default', series('test'));
+
+// Installation
+
+let installDir;
+task('cache-install-dir', (cb) => {
+	installDir = process.env.GULPACHEK_INSTALL_DIR;
+	if (!installDir) {
+		cb(new Error('GULPACHEK_INSTALL_DIR not defined'));
+	}
+
+	cb();
+});
+
+task('install-headers', () => {
+	return src(`${__dirname}/include/gulachek/**/*.hpp`)
+		.pipe(dest(`${installDir}/include/gulachek/`));
+});
+
+task('install-binary', series('build', () => {
+	return src(lib.abs())
+		.pipe(dest(`${installDir}/lib/`));
+}));
+
+task('install', series(
+	'cache-install-dir',
+	'install-binary', 
+	'install-headers'
+));
