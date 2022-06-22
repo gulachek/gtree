@@ -13,7 +13,7 @@ const boost = {
 };
 
 // shouldn't have to specify ".a"
-const lib = cpp.library('libgulachek_gtree.a',
+const lib = cpp.library('com.gulachek.gtree', '0.1.0',
 	'src/base128.cpp',
 	'src/twos_complement.cpp',
 	'src/fd.cpp',
@@ -69,31 +69,4 @@ buildRules.push(nums);
 task('build', series(...buildRules.map((rule) => sys.rule(rule))));
 task('test', series('build', ...tests));
 task('default', series('test'));
-
-// Installation
-
-let installDir;
-task('cache-install-dir', (cb) => {
-	installDir = process.env.GULPACHEK_INSTALL_DIR;
-	if (!installDir) {
-		cb(new Error('GULPACHEK_INSTALL_DIR not defined'));
-	}
-
-	cb();
-});
-
-task('install-headers', () => {
-	return src(`${__dirname}/include/gulachek/**/*.hpp`)
-		.pipe(dest(`${installDir}/include/gulachek/`));
-});
-
-task('install-binary', series('build', () => {
-	return src(lib.abs())
-		.pipe(dest(`${installDir}/lib/`));
-}));
-
-task('install', series(
-	'cache-install-dir',
-	'install-binary', 
-	'install-headers'
-));
+task('install', sys.rule(lib.libroot()));
