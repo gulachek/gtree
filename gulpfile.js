@@ -69,4 +69,6 @@ buildRules.push(nums);
 task('build', series(...buildRules.map((rule) => sys.rule(rule))));
 task('test', series('build', ...tests));
 task('default', series('test'));
-task('install', sys.rule(lib.libroot()));
+task('install', (cb) => {
+	sys.rule(lib.libroot())(cb);
+});
