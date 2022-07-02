@@ -70,5 +70,5 @@ task('build', series(...buildRules.map((rule) => sys.rule(rule))));
 task('test', series('build', ...tests));
 task('default', series('test'));
 task('install', (cb) => {
-	sys.rule(lib.libroot())(cb);
+	return sys.rule(lib.libroot())(cb);
 });
