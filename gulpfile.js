@@ -3,27 +3,16 @@ const { BuildSystem } = require('gulpachek');
 const { Cpp } = require('gulpachek/cpp');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const gtree = require('./index.js');
 
 const sys = new BuildSystem(__dirname);
 const cpp = new Cpp(sys);
 
 const boost = {
 	test: cpp.require('org.boost.test', '1.78.0'),
-	fiber: cpp.require('org.boost.fiber', '1.78.0')
 };
 
-// shouldn't have to specify ".a"
-const lib = cpp.library('com.gulachek.gtree', '0.1.0',
-	'src/base128.cpp',
-	'src/twos_complement.cpp',
-	'src/fd.cpp',
-	'src/cause.cpp',
-	'src/translate.cpp',
-	'src/tree.cpp'
-);
-
-lib.include('include');
-lib.link(boost.fiber);
+const lib = gtree.build(sys);
 
 const buildRules = [];
 const tests = [];
