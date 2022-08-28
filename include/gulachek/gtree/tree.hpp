@@ -24,13 +24,13 @@ namespace gulachek::gtree
 		public:
 			using value_type = std::span<const std::uint8_t>;
 
-			tree() = default;
+			GTREE_API tree() = default;
 
 			template <
 				vector_like<std::uint8_t> Value,
 				vector_like<tree> Children
 					>
-			tree(
+			GTREE_API tree(
 					Value &&value,
 					Children &&children
 					) :
@@ -39,44 +39,45 @@ namespace gulachek::gtree
 			{}
 
 			template < vector_like<std::uint8_t> Value >
-			tree(
+			GTREE_API tree(
 					Value &&value
 					) :
 				value_{std::forward<Value>(value)},
 				children_{}
 			{}
 
-			bool empty() const;
+			GTREE_API bool empty() const;
 
-			value_type value() const;
-			void value(const value_type &val);
+			GTREE_API value_type value() const;
+			GTREE_API void value(const value_type &val);
 
-			std::size_t child_count() const;
-			void child_count(std::size_t n);
+			GTREE_API std::size_t child_count() const;
+			GTREE_API void child_count(std::size_t n);
 
-			const tree& child(std::size_t i) const;
-			tree& child(std::size_t i);
+			GTREE_API const tree& child(std::size_t i) const;
+			GTREE_API tree& child(std::size_t i);
 
-			cause gtree_encode(tree_writer &writer) const;
-			cause gtree_decode(treeder &reader);
+			GTREE_API cause gtree_encode(tree_writer &writer) const;
+			GTREE_API cause gtree_decode(treeder &reader);
 
 			// optimized translation from tree
 			template <decodable D>
-			cause read(D *dest) const;
+			GTREE_API cause read(D *dest) const;
 
 			// optimized translation to tree
 			template <encodable E>
-			cause write(const E &src);
+			GTREE_API cause write(const E &src);
 
 		private:
 			std::vector<std::uint8_t> value_;
 			std::vector<tree> children_;
 	};
 
-	class tree_treeder_stream : public treeder_stream
+	class GTREE_API tree_treeder_stream : public treeder_stream
 	{
 		public:
 			tree_treeder_stream(const tree *tr);
+			~tree_treeder_stream() = default;
 
 			cause next() override;
 			std::size_t size() const override;
@@ -105,7 +106,7 @@ namespace gulachek::gtree
 		return reader.read(dest);
 	}
 
-	class tree_tree_writer_stream : public tree_writer_stream
+	class GTREE_API tree_tree_writer_stream : public tree_writer_stream
 	{
 		public:
 			tree_tree_writer_stream(tree *tr);

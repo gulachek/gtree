@@ -6,7 +6,7 @@
 
 namespace gulachek::gtree
 {
-	void twos_complement(void *buf, std::size_t nbytes);
+	GTREE_API void twos_complement(void *buf, std::size_t nbytes);
 }
 
 #endif

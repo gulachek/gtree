@@ -14,7 +14,7 @@ namespace gulachek
 		{static_cast<std::size_t>(val)};
 	};
 
-	class cause
+	class GTREE_API cause
 	{
 		enum class standard_code
 		{
@@ -112,7 +112,7 @@ namespace gulachek
 		{c << val} -> __is_cause_ref;
 	};
 
-	std::ostream& operator << (std::ostream &os, const cause &c);
+	GTREE_API std::ostream& operator << (std::ostream &os, const cause &c);
 }
 
 #endif

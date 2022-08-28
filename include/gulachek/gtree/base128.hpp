@@ -16,14 +16,14 @@ namespace gulachek::gtree
 		overflow
 	};
 
-	cause read_base128(std::istream &is, std::size_t *n);
+	GTREE_API cause read_base128(std::istream &is, std::size_t *n);
 
 	enum class write_base128_error
 	{
 		bad_stream = 1
 	};
 
-	cause write_base128(std::ostream &os, std::size_t n);
+	GTREE_API cause write_base128(std::ostream &os, std::size_t n);
 }
 
 #endif

@@ -1,5 +1,4 @@
 #define BOOST_TEST_MODULE Base128Test
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
 #include "gulachek/gtree/base128.hpp"

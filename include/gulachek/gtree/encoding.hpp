@@ -34,32 +34,32 @@ namespace gulachek::gtree
 
 	struct tree_writer_stream
 	{
-		virtual ~tree_writer_stream() {}
+		GTREE_API virtual ~tree_writer_stream() {}
 
-		virtual void value(const void *data, std::size_t nbytes) = 0;
-		virtual void child_count(std::size_t n) = 0;
-		virtual bool ok() = 0;
+		GTREE_API virtual void value(const void *data, std::size_t nbytes) = 0;
+		GTREE_API virtual void child_count(std::size_t n) = 0;
+		GTREE_API virtual bool ok() = 0;
 	};
 
 	class ostream_tree_writer_stream : public tree_writer_stream
 	{
 		public:
-			ostream_tree_writer_stream(std::ostream &os) :
+			GTREE_API ostream_tree_writer_stream(std::ostream &os) :
 				os_{os}
 			{}
 
-			void value(const void *data, std::size_t nbytes) override
+			GTREE_API void value(const void *data, std::size_t nbytes) override
 			{
 				write_base128(os_, nbytes);
 				os_.write((const char*)data, nbytes);
 			}
 
-			void child_count(std::size_t n) override
+			GTREE_API void child_count(std::size_t n) override
 			{
 				write_base128(os_, n);
 			}
 
-			bool ok() override
+			GTREE_API bool ok() override
 			{ return !!os_; }
 
 		private:
@@ -76,14 +76,14 @@ namespace gulachek::gtree
 		};
 
 		public:
-			tree_writer(tree_writer_stream &s) :
+			GTREE_API tree_writer(tree_writer_stream &s) :
 				stream_{s},
 				cursor_{cursor_position::value},
 				nchildren_{~0LU},
 				write_count_{0}
 			{}
 
-			void value(const void *buf, std::size_t nbytes)
+			GTREE_API void value(const void *buf, std::size_t nbytes)
 			{
 				if (cursor_ != cursor_position::value)
 					throw std::logic_error{"Must write value immediately"};
@@ -93,7 +93,7 @@ namespace gulachek::gtree
 				cursor_ = cursor_position::child_count;
 			}
 
-			void child_count(std::size_t n)
+			GTREE_API void child_count(std::size_t n)
 			{
 				if (cursor_ != cursor_position::child_count)
 					throw std::logic_error{"Must write child count immediately after value"};

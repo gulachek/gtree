@@ -1,5 +1,4 @@
 #define BOOST_TEST_MODULE TupleTest
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
 #include "convert.hpp"
