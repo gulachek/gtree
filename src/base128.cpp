@@ -2,12 +2,28 @@
 
 namespace gulachek::gtree
 {
+	static consteval std::size_t overflow_cap()
+	{
+		constexpr auto width = sizeof(std::size_t);
+		static_assert(width == 4 || width == 8, "Unhandled sizeof(std::size_t)");
+
+		if (width == 4)
+		{
+			return 0x0f;
+		}
+		else
+		{
+			return 0x01;
+		}
+	}
+
 	cause read_base128(std::istream &is, std::size_t *n)
 	{
 		*n = 0;
 		std::size_t power = 1;
 		std::size_t b;
 		std::size_t nbits = 7;
+		constexpr auto cap = overflow_cap();
 
 		auto c = is.get();
 		auto eof = std::istream::traits_type::eof();
@@ -39,7 +55,7 @@ namespace gulachek::gtree
 
 			b = (std::size_t) c;
 
-			if ((nbits > 8*sizeof(std::size_t)) && b > 1)
+			if ((nbits > 8*sizeof(std::size_t)) && b > cap)
 				return {read_base128_error::overflow, "overflow"};
 
 		}

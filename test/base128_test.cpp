@@ -66,24 +66,46 @@ BOOST_AUTO_TEST_CASE(BadStreamIsError)
 
 BOOST_AUTO_TEST_CASE(MaxValIsNotError)
 {
-	// list out assumption
-	BOOST_REQUIRE(sizeof(std::size_t) == 8);
-
-	std::istringstream ss{"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01"};
+	std::istringstream ss;
+	std::size_t expect;
+	if constexpr (sizeof(std::size_t) == 8)
+	{
+		expect = 0xffffffffffffffffLU;
+		ss = std::istringstream{"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01"};
+	}
+	else if constexpr (sizeof(std::size_t) == 4)
+	{
+		expect = 0xffffffffLU;
+		ss = std::istringstream{"\xff\xff\xff\xff\x0f"};
+	}
+	else
+	{
+		BOOST_FAIL("size_t width not handled");
+	}
 
 	std::size_t n;
 	auto err = gt::read_base128(ss, &n);
 
 	BOOST_TEST(!err);
-	BOOST_TEST(n == 0xffffffffffffffffLU);
+	BOOST_TEST(n == expect);
 }
 
 BOOST_AUTO_TEST_CASE(OverflowIsError)
 {
-	// list out assumption
-	BOOST_REQUIRE(sizeof(std::size_t) == 8);
-
-	std::istringstream ss{"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x02"};
+	std::istringstream ss;
+	std::size_t expect;
+	if constexpr (sizeof(std::size_t) == 8)
+	{
+		ss = std::istringstream{"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x02"};
+	}
+	else if constexpr (sizeof(std::size_t) == 4)
+	{
+		ss = std::istringstream{"\xff\xff\xff\xff\x10"};
+	}
+	else
+	{
+		BOOST_FAIL("size_t width not handled");
+	}
 
 	std::size_t n;
 	auto err = gt::read_base128(ss, &n);

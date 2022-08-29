@@ -19,18 +19,18 @@ namespace gulachek::gtree
 		std::vector<Elem>{std::forward<T>(val)};
 	};
 
-	class tree
+	class GTREE_API tree
 	{
 		public:
 			using value_type = std::span<const std::uint8_t>;
 
-			GTREE_API tree() = default;
+			tree() = default;
 
 			template <
 				vector_like<std::uint8_t> Value,
 				vector_like<tree> Children
 					>
-			GTREE_API tree(
+			tree(
 					Value &&value,
 					Children &&children
 					) :
@@ -39,34 +39,34 @@ namespace gulachek::gtree
 			{}
 
 			template < vector_like<std::uint8_t> Value >
-			GTREE_API tree(
+			tree(
 					Value &&value
 					) :
 				value_{std::forward<Value>(value)},
 				children_{}
 			{}
 
-			GTREE_API bool empty() const;
+			bool empty() const;
 
-			GTREE_API value_type value() const;
-			GTREE_API void value(const value_type &val);
+			value_type value() const;
+			void value(const value_type &val);
 
-			GTREE_API std::size_t child_count() const;
-			GTREE_API void child_count(std::size_t n);
+			std::size_t child_count() const;
+			void child_count(std::size_t n);
 
-			GTREE_API const tree& child(std::size_t i) const;
-			GTREE_API tree& child(std::size_t i);
+			const tree& child(std::size_t i) const;
+			tree& child(std::size_t i);
 
-			GTREE_API cause gtree_encode(tree_writer &writer) const;
-			GTREE_API cause gtree_decode(treeder &reader);
+			cause gtree_encode(tree_writer &writer) const;
+			cause gtree_decode(treeder &reader);
 
 			// optimized translation from tree
 			template <decodable D>
-			GTREE_API cause read(D *dest) const;
+			cause read(D *dest) const;
 
 			// optimized translation to tree
 			template <encodable E>
-			GTREE_API cause write(const E &src);
+			cause write(const E &src);
 
 		private:
 			std::vector<std::uint8_t> value_;
