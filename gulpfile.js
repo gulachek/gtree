@@ -17,9 +17,9 @@ const cpp = new CppSystem({
 });
 
 const boost = {
-	test: cpp.require('org.boost.test', '1.78.0', 'dynamic'),
-	fiber: cpp.require('org.boost.fiber', '1.78.0', 'dynamic'),
-	iostreams: cpp.require('org.boost.iostreams', '1.78.0', 'dynamic')
+	test: cpp.require('org.boost.test', '1.74.0', 'dynamic'),
+	fiber: cpp.require('org.boost.fiber', '1.74.0', 'dynamic'),
+	iostreams: cpp.require('org.boost.iostreams', '1.74.0', 'dynamic')
 };
 
 const gtree = cpp.compile({
@@ -91,6 +91,6 @@ const nums = cpp.compile({
 nums.link(image);
 buildRules.push(nums.executable());
 
-task('build', parallel(...buildRules.map((rule) => sys.rule(rule))));
+task('build', series(...buildRules.map((rule) => sys.rule(rule))));
 task('test', series('build', ...tests));
 task('default', series('test'));

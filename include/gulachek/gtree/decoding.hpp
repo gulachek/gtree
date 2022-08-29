@@ -76,7 +76,7 @@ namespace gulachek::gtree
 				buf_.resize(nbytes);
 				is_.read((char*)buf_.data(), nbytes);
 
-				auto read_count = is_.gcount();
+				auto read_count = (std::size_t)is_.gcount();
 				if (read_count != nbytes)
 				{
 					cause err{read_error::incomplete_value};

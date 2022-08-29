@@ -3,7 +3,6 @@
 
 #include "gulachek/gtree/read.hpp"
 #include "gulachek/gtree/tree.hpp"
-#include <strstream>
 #include <sstream>
 #include <vector>
 #include <cstdint>
@@ -11,10 +10,20 @@
 using cause = gulachek::cause;
 namespace gt = gulachek::gtree;
 
+std::stringstream makeis(const std::vector<std::uint8_t> &buf)
+{
+	std::stringstream ss;
+	for (const auto &b : buf)
+	{
+		ss << (char)b;
+	}
+	ss.seekg(0, std::stringstream::beg);
+	return ss;
+}
+
 BOOST_AUTO_TEST_CASE(EmptyTree)
 {
-	std::vector<std::uint8_t> buf = {0, 0};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({0, 0});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -39,8 +48,7 @@ BOOST_AUTO_TEST_CASE(EmptySeqIsEof)
 
 BOOST_AUTO_TEST_CASE(AbcValue)
 {
-	std::vector<std::uint8_t> buf = {3, 'a', 'b', 'c', 0};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({3, 'a', 'b', 'c', 0});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -58,8 +66,7 @@ BOOST_AUTO_TEST_CASE(AbcValue)
 
 BOOST_AUTO_TEST_CASE(IncompleteValueSizeIsError)
 {
-	std::vector<std::uint8_t> buf = {128};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({128});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -70,8 +77,7 @@ BOOST_AUTO_TEST_CASE(IncompleteValueSizeIsError)
 
 BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
 {
-	std::vector<std::uint8_t> buf = {3, 'a', 'b'};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({3, 'a', 'b'});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -82,8 +88,7 @@ BOOST_AUTO_TEST_CASE(IncompleteValueIsError)
 
 BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
 {
-	std::vector<std::uint8_t> buf = {3, 'a', 'b', 'c', 128};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({3, 'a', 'b', 'c', 128});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -94,8 +99,7 @@ BOOST_AUTO_TEST_CASE(IncompleteChildCountError)
 
 BOOST_AUTO_TEST_CASE(MissingChildIsError)
 {
-	std::vector<std::uint8_t> buf = {3, 'a', 'b', 'c', 1};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	auto is = makeis({3, 'a', 'b', 'c', 1});
 
 	gt::tree tr;
 	auto err = gt::read(is, &tr);
@@ -106,12 +110,11 @@ BOOST_AUTO_TEST_CASE(MissingChildIsError)
 
 BOOST_AUTO_TEST_CASE(AbcChildren)
 {
-	std::vector<std::uint8_t> buf = {
+	auto is = makeis({
 		1, 'a', 2,
 		1, 'b', 0,
 		1, 'c', 0
-	};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	});
 
 	gt::tree a;
 	auto err = gt::read(is, &a);
@@ -148,10 +151,9 @@ BOOST_AUTO_TEST_CASE(ReadTooManyChildrenThrowsLogicError)
 {
 	auto go = []{
 
-		std::vector<std::uint8_t> buf = {
+		auto is = makeis({
 			0, 0,
-		};
-		std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+		});
 
 		read_first_child x;
 		gt::read(is, &x);
@@ -162,12 +164,11 @@ BOOST_AUTO_TEST_CASE(ReadTooManyChildrenThrowsLogicError)
 
 BOOST_AUTO_TEST_CASE(ReadTooFewChildrenIsAccountedFor)
 {
-	std::vector<std::uint8_t> buf = {
+	auto is = makeis({
 		0, 2,
 		0, 0,
 		0, 0,
-	};
-	std::istrstream is{(char*)buf.data(), (std::streamsize)buf.size()};
+	});
 
 	read_first_child x;
 	auto err = gt::read(is, &x);

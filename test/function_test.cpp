@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(DecodeVector)
 
 BOOST_AUTO_TEST_CASE(ReadSendErrorIsErr)
 {
-	int n;
+	int n = 0;
 
 	auto f = [&](gt::treeder &r){
 		return cause{"ad hoc"};
