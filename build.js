@@ -1,9 +1,17 @@
-const { task, series, parallel, src, dest } = require('gulp');
+const { series, parallel } = require('bach');
+const asyncDone = require('async-done');
 const { BuildSystem } = require('gulpachek');
 const { CppSystem } = require('gulpachek/cpp');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { version } = require('./package.json');
+
+const [node, script, target] = process.argv;
+
+if (!target) {
+	console.error('Must specify <target> as first positional command line param');
+	process.exit(1);
+}
 
 if (!version) {
 	console.error(new Error('gtree package.json version not specified'));
@@ -42,7 +50,7 @@ gtree.link(boost.iostreams);
 
 const image = gtree.image();
 
-const buildRules = [];
+const testBuildRules = [];
 const tests = [];
 
 // not ideal that this is using relative path. should be relative to srcdir
@@ -60,7 +68,7 @@ for (const f of fs.readdirSync('test')) {
 	test.include('test/include');
 
 	const target = test.executable();
-	buildRules.push(target);
+	testBuildRules.push(target);
 
 	const runTest = () => {
 		return spawn(target.abs(), [], { stdio: 'inherit' });
@@ -81,7 +89,7 @@ const gtree2hex = cpp.compile({
 });
 
 gtree2hex.link(image);
-buildRules.push(gtree2hex.executable());
+testBuildRules.push(gtree2hex.executable());
 
 const nums = cpp.compile({
 	name: 'nums',
@@ -89,8 +97,23 @@ const nums = cpp.compile({
 });
 
 nums.link(image);
-buildRules.push(nums.executable());
+testBuildRules.push(nums.executable());
 
-task('build', series(...buildRules.map((rule) => sys.rule(rule))));
-task('test', series('build', ...tests));
-task('default', series('test'));
+const testRule = parallel(...testBuildRules.map(rule => sys.rule(rule)));
+
+const asyncCb = (err) => {
+	if (err) { console.error(err); }
+}
+
+const buildRule = sys.rule(image.binary());
+
+if (target === 'build') {
+	asyncDone(buildRule, asyncCb);
+} else if (target === 'test') {
+	asyncDone(series(buildRule, testRule, ...tests), asyncCb);
+} else if (target === 'pack') {
+	asyncDone(sys.rule(cpp.pack(image)), asyncCb);
+} else {
+	console.error(`Unknown target: ${target}`);
+	process.exit(1);
+}

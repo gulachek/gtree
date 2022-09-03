@@ -1,8 +1,0 @@
-@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/gulachek_gtree_targets.cmake")
-
-include(CMakeFindDependencyMacro)
-find_dependency(Boost REQUIRED iostreams fiber)
-
-check_required_components(gulachek_gtree)
