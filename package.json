@@ -25,6 +25,7 @@
     "gulpachek": "github:gulachek/gulpachek"
   },
   "dependencies": {
-    "bach": "^2.0.1"
+    "bach": "^2.0.1",
+    "commander": "^9.4.0"
   }
 }
