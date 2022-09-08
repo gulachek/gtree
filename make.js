@@ -1,7 +1,6 @@
 const { series, parallel } = require('bach');
 const asyncDone = require('async-done');
-const { BuildSystem } = require('gulpachek');
-const { CppSystem } = require('gulpachek/cpp');
+const { CppBuildCommand } = require('gulpachek/cpp');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { version } = require('./package.json');
@@ -12,22 +11,16 @@ if (!version) {
 	process.exit(1);
 }
 
-function configure() {
-	const sys = new BuildSystem();
-	const cpp = new CppSystem({
-		sys,
-		cppVersion: 20
-	});
+const program = new Command();
+const cppBuild = new CppBuildCommand({
+	program,
+	cppVersion: 20
+});
 
-	return { sys, cpp };
-}
-
-function makeLib(opts) {
-	const { cpp } = opts;
-
+function makeLib(cpp) {
 	const boost = {
-		fiber: cpp.require('org.boost.fiber', '1.74.0', 'dynamic'),
-		iostreams: cpp.require('org.boost.iostreams', '1.74.0', 'dynamic')
+		fiber: cpp.require('org.boost.fiber', '1.74.0'),
+		iostreams: cpp.require('org.boost.iostreams', '1.74.0')
 	};
 
 	const gtree = cpp.compile({
@@ -51,38 +44,26 @@ function makeLib(opts) {
 	return gtree;
 }
 
-const program = new Command();
+cppBuild.build((args) => {
+	const { cpp } = args;
 
-program
-  .name('build.js')
-  .description('Build gtree libraries')
-  .option('--build-type <type>', 'debug or release')
-  .version(version);
+	const gtree = makeLib(cpp);
 
-program.command('build')
-.description('Build the library')
-.action((_, options) => {
-
-	const { cpp, sys } = configure();
-
-	const gtree = makeLib({ cpp });
-
-	sys.build(gtree.image().binary());
-
+	// ew
+	return cpp.toLibrary(gtree).binary();
 });
 
-program.command('test')
-.description('Build and run unit tests')
-.action((options) => {
-	const { cpp, sys } = configure();
+const test = program.command('test')
+.description('Build and run unit tests');
 
-	const gtree = makeLib({ cpp });
+cppBuild.configure(test, (args) => {
+	const { cpp, sys } = args;
+
+	const gtree = makeLib(cpp);
 
 	const boost = {
-		test: cpp.require('org.boost.test', '1.74.0', 'dynamic')
+		test: cpp.require('org.boost.test', '1.74.0')
 	};
-
-	const image = gtree.image();
 
 	const testBuildRules = [];
 	const tests = [];
@@ -97,7 +78,7 @@ program.command('test')
 			src: [`test/${f}`]
 		});
 
-		test.link(image);
+		test.link(gtree);
 		test.link(boost.test);
 		test.include('test/include');
 
@@ -118,31 +99,15 @@ program.command('test')
 
 	const testRule = parallel(...testBuildRules.map(rule => sys.rule(rule)));
 
-	const asyncCb = (err) => {
-		if (err) { console.error(err); }
-	}
-
-	const buildRule = sys.rule(image.binary());
-
-	asyncDone(series(buildRule, testRule, ...tests), asyncCb);
+	return series(testRule, ...tests);
 });
 
-program.command('pack')
-.description('Package build outputs for installers')
-.action(async (options) => {
-	for (const opts of [
-		{ buildType: 'debug' },
-		{ buildType: 'release' }
-	]) {
-		process.env.GULPACHEK_BUILD_TYPE = opts.buildType;
-		const { cpp, sys } = configure(opts);
-
-		const gtree = makeLib({ cpp });
-
-		await sys.build(cpp.pack(gtree.image()));
-	}
+cppBuild.pack((args) => {
+	const { cpp } = args;
+	return makeLib(cpp);
 });
 
+/*
 program.command('test-install')
 .description('Build programs against installed library')
 .action((options) => {
@@ -167,5 +132,6 @@ program.command('test-install')
 	nums.link(gtree);
 	sys.build(nums.executable());
 });
+*/
 
 program.parse();
