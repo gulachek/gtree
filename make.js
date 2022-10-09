@@ -1,5 +1,4 @@
 const { series, parallel } = require('bach');
-const asyncDone = require('async-done');
 const { CppBuildCommand } = require('gulpachek/cpp');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -62,7 +61,7 @@ cppBuild.configure(test, (args) => {
 	const gtree = makeLib(cpp);
 
 	const boost = {
-		test: cpp.require('org.boost.test', '1.74.0')
+		test: cpp.require('org.boost.unit-test-framework', '1.74.0')
 	};
 
 	const testBuildRules = [];
@@ -107,13 +106,13 @@ cppBuild.pack((args) => {
 	return makeLib(cpp);
 });
 
-/*
-program.command('test-install')
-.description('Build programs against installed library')
-.action((options) => {
-	const { cpp, sys } = configure();
+const testInstall = program.command('test-install')
+	.description('Build programs against installed library');
 
-	const gtree = cpp.require('com.gulachek.gtree', version, 'dynamic');
+cppBuild.configure(testInstall, (args) => {
+	const { sys, cpp } = args;
+
+	const gtree = cpp.require('com.gulachek.gtree', version);
 
 	const gtree2hex = cpp.compile({
 		name: 'gtree2hex',
@@ -122,7 +121,6 @@ program.command('test-install')
 	});
 
 	gtree2hex.link(gtree);
-	sys.build(gtree2hex.executable());
 
 	const nums = cpp.compile({
 		name: 'nums',
@@ -130,8 +128,9 @@ program.command('test-install')
 	});
 
 	nums.link(gtree);
+
+	sys.build(gtree2hex.executable());
 	sys.build(nums.executable());
 });
-*/
 
 program.parse();
