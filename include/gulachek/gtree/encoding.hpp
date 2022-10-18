@@ -32,41 +32,41 @@ namespace gulachek::gtree
 		{enc.encode(writer)} -> my_same_as<error>;
 	};
 
-	struct tree_writer_stream
+	struct GTREE_API tree_writer_stream
 	{
-		GTREE_API virtual ~tree_writer_stream() {}
+		virtual ~tree_writer_stream() {}
 
-		GTREE_API virtual void value(const void *data, std::size_t nbytes) = 0;
-		GTREE_API virtual void child_count(std::size_t n) = 0;
-		GTREE_API virtual bool ok() = 0;
+		virtual void value(const void *data, std::size_t nbytes) = 0;
+		virtual void child_count(std::size_t n) = 0;
+		virtual bool ok() = 0;
 	};
 
-	class ostream_tree_writer_stream : public tree_writer_stream
+	class GTREE_API ostream_tree_writer_stream : public tree_writer_stream
 	{
 		public:
-			GTREE_API ostream_tree_writer_stream(std::ostream &os) :
+			ostream_tree_writer_stream(std::ostream &os) :
 				os_{os}
 			{}
 
-			GTREE_API void value(const void *data, std::size_t nbytes) override
+			void value(const void *data, std::size_t nbytes) override
 			{
 				write_base128(os_, nbytes);
 				os_.write((const char*)data, nbytes);
 			}
 
-			GTREE_API void child_count(std::size_t n) override
+			void child_count(std::size_t n) override
 			{
 				write_base128(os_, n);
 			}
 
-			GTREE_API bool ok() override
+			bool ok() override
 			{ return !!os_; }
 
 		private:
 			std::ostream &os_;
 	};
 
-	class tree_writer
+	class GTREE_API tree_writer
 	{
 		enum class cursor_position
 		{
@@ -76,14 +76,14 @@ namespace gulachek::gtree
 		};
 
 		public:
-			GTREE_API tree_writer(tree_writer_stream &s) :
+			tree_writer(tree_writer_stream &s) :
 				stream_{s},
 				cursor_{cursor_position::value},
 				nchildren_{~0LU},
 				write_count_{0}
 			{}
 
-			GTREE_API void value(const void *buf, std::size_t nbytes)
+			void value(const void *buf, std::size_t nbytes)
 			{
 				if (cursor_ != cursor_position::value)
 					throw std::logic_error{"Must write value immediately"};
@@ -93,7 +93,7 @@ namespace gulachek::gtree
 				cursor_ = cursor_position::child_count;
 			}
 
-			GTREE_API void child_count(std::size_t n)
+			void child_count(std::size_t n)
 			{
 				if (cursor_ != cursor_position::child_count)
 					throw std::logic_error{"Must write child count immediately after value"};

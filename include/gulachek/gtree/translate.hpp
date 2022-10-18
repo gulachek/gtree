@@ -15,26 +15,26 @@ namespace gulachek::gtree
 		decoding
 	};
 
-	class translate_stream :
+	class GTREE_API translate_stream :
 		public treeder_stream, public tree_writer_stream
 	{
 		public:
-			GTREE_API translate_stream();
-			GTREE_API ~translate_stream();
+			translate_stream();
+			~translate_stream();
 
-			GTREE_API error translate(
+			error translate(
 					const std::function<error()> &read,
 					const std::function<error()> &write
 					);
 
-			GTREE_API void value(const void *data, std::size_t n) override;
-			GTREE_API void child_count(std::size_t n) override;
-			GTREE_API bool ok() override;
+			void value(const void *data, std::size_t n) override;
+			void child_count(std::size_t n) override;
+			bool ok() override;
 
-			GTREE_API error next() override;
-			GTREE_API std::size_t size() const override;
-			GTREE_API const std::uint8_t* data() const override;
-			GTREE_API std::size_t child_count() const override;
+			error next() override;
+			std::size_t size() const override;
+			const std::uint8_t* data() const override;
+			std::size_t child_count() const override;
 
 		private:
 			// don't want to force consumer to include boost::fiber

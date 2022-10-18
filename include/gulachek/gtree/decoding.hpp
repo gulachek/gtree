@@ -52,14 +52,14 @@ namespace gulachek::gtree
 		virtual std::size_t child_count() const = 0;
 	};
 
-	class istream_treeder_stream : public treeder_stream
+	class GTREE_API istream_treeder_stream : public treeder_stream
 	{
 		public:
-			GTREE_API istream_treeder_stream(std::istream &is) :
+			istream_treeder_stream(std::istream &is) :
 				is_{is}
 			{}
 
-			GTREE_API error next() override
+			error next() override
 			{
 				std::size_t nbytes;
 				if (auto err = read_base128(is_, &nbytes))
@@ -111,21 +111,21 @@ namespace gulachek::gtree
 			std::size_t child_count_;
 	};
 
-	class treeder
+	class GTREE_API treeder
 	{
 		public:
-			GTREE_API treeder(treeder_stream &s) :
+			treeder(treeder_stream &s) :
 				stream_{s},
 				nchildren_{1},
 				read_count_{0}
 			{}
 
-			GTREE_API std::span<const std::uint8_t> value() const
+			std::span<const std::uint8_t> value() const
 			{
 				return {stream_.data(), stream_.size()};
 			}
 
-			GTREE_API std::size_t child_count() const
+			std::size_t child_count() const
 			{
 				return nchildren_;
 			}
@@ -159,11 +159,11 @@ namespace gulachek::gtree
 	};
 
 	template <>
-	struct decoding<ignore>
+	struct GTREE_API decoding<ignore>
 	{
 		ignore *ig_;
 
-		GTREE_API error decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto cc = r.child_count();
 			for (std::size_t i = 0; i < cc; ++i)
