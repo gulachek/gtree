@@ -6,7 +6,7 @@
 
 namespace gulachek::gtree
 {
-	class fd_istream_adapter
+	class GTREE_API fd_istream_adapter
 	{
 		public:
 			fd_istream_adapter(int fd);
@@ -19,7 +19,7 @@ namespace gulachek::gtree
 			std::unique_ptr<impl> pimpl_;
 	};
 
-	class fd_ostream_adapter
+	class GTREE_API fd_ostream_adapter
 	{
 		public:
 			fd_ostream_adapter(int fd);

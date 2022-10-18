@@ -179,3 +179,10 @@ BOOST_AUTO_TEST_CASE(ReadTooFewChildrenIsAccountedFor)
 
 	BOOST_CHECK(err.is_eof());
 }
+
+BOOST_AUTO_TEST_CASE(CompileReaders, *boost::unit_test::disabled())
+{
+	gt::tree tr;
+	gt::read_fd(0, &tr);
+	gt::read_file("my/file", &tr);
+}

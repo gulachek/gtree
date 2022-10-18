@@ -288,3 +288,10 @@ BOOST_AUTO_TEST_CASE(BadStreamIsError)
 
 	BOOST_TEST(!!err);
 }
+
+BOOST_AUTO_TEST_CASE(CompileWriters, *boost::unit_test::disabled())
+{
+	std::string str{"hello"};
+	gt::write_fd(0, str);
+	gt::write_file("my/path", str);
+}
