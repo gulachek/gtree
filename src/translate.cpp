@@ -18,12 +18,12 @@ namespace gulachek::gtree
 
 	translate_stream::~translate_stream() {}
 
-	cause translate_stream::translate(
-					const std::function<cause()> &read,
-					const std::function<cause()> &write
+	error translate_stream::translate(
+					const std::function<error()> &read,
+					const std::function<error()> &write
 			)
 	{
-		cause wrap;
+		error wrap;
 
 		boost::fibers::fiber read_fib{[&]{
 			auto err = read();
@@ -88,7 +88,7 @@ namespace gulachek::gtree
 	bool translate_stream::ok()
 	{ return ok_; }
 
-	cause translate_stream::next()
+	error translate_stream::next()
 	{
 		std::unique_lock lck{pfiber_->mtx};
 
@@ -98,7 +98,7 @@ namespace gulachek::gtree
 		while (!is_reading_)
 			pfiber_->reading.wait(lck);
 
-		cause err;
+		error err;
 		if (!ok_) { err << "bad write"; }
 		return err;
 	}

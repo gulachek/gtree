@@ -5,7 +5,7 @@
 #include "gulachek/gtree/encoding.hpp"
 #include "gulachek/gtree/fd.hpp"
 
-#include <gulachek/cause.hpp>
+#include <gulachek/error.hpp>
 
 #include <ostream>
 #include <span>
@@ -17,7 +17,7 @@
 namespace gulachek::gtree
 {
 	template <encodable T>
-	cause write(std::ostream &os, const T &val)
+	error write(std::ostream &os, const T &val)
 	{
 		ostream_tree_writer_stream stream{os};
 		tree_writer writer{stream};
@@ -25,20 +25,20 @@ namespace gulachek::gtree
 	}
 
 	template <encodable T>
-	cause write_fd(int fd, const T &val)
+	error write_fd(int fd, const T &val)
 	{
 		fd_ostream_adapter adapt{fd};
 		return write(adapt.stream(), val);
 	}
 
 	template <encodable T>
-	cause write_file(const std::filesystem::path &p, const T &val)
+	error write_file(const std::filesystem::path &p, const T &val)
 	{
 		std::ofstream f{p};
 
 		if (!f)
 		{
-			cause err;
+			error err;
 			err << "error opening file " << p;
 			return err;
 		}

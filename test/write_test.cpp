@@ -12,7 +12,7 @@
 namespace gt = gulachek::gtree;
 using namespace std::string_literals;
 
-using cause = gulachek::cause;
+using gulachek::error;
 
 BOOST_AUTO_TEST_CASE(EmptyTree)
 {
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(EmptyTree)
 
 struct write_cc_before_value
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		w.child_count(0);
 		int x = 3;
@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(WritingChildCountBeforeValueIsLogicError)
 
 struct write_value_twice
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		int x = 3;
 		w.value(&x, sizeof(x));
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(WritingValueTwiceIsLogicError)
 
 struct write_child_before_count
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		int x = 3;
 		w.value(&x, sizeof(x));
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(WritingChildBeforeCountIsLogicError)
 
 struct write_too_many_children
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		int x = 3;
 		w.value(&x, sizeof(x));
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(WritingTooManyChildrenIsLogicError)
 
 struct write_too_few_children
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		int x = 3;
 		w.value(&x, sizeof(x));
@@ -180,7 +180,7 @@ struct write_string
 {
 	std::string s;
 
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		return w.write(s); // write s as tree suffices
 	}
@@ -202,7 +202,7 @@ struct write_string_twice
 {
 	std::string s;
 
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		w.write(s);
 		return w.write(s); // write s as tree suffices
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(WriteOtherObjectTwiceIsLogicError)
 
 struct only_write_value
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		int x = 3;
 		w.value(&x, sizeof(x));
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(OnlyWriteValueIsError)
 /*
 struct raw_val_writer
 {
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		auto hello = "hello"s;
 		w.write_raw(hello.data(), hello.size());
@@ -270,7 +270,7 @@ struct make_bad_stream
 {
 	std::ostream &os;
 
-	cause gtree_encode(gt::tree_writer &w) const
+	error gtree_encode(gt::tree_writer &w) const
 	{
 		w.value(nullptr, 0);
 		w.child_count(0);

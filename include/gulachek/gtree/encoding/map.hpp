@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	{
 		std::map<K,V,C,A> *pm;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto n = r.child_count();
 			for (std::size_t i = 0; i < n; ++i)
@@ -22,16 +22,14 @@ namespace gulachek::gtree
 				std::pair<K,V> p;
 				if (auto err = r.read(&p))
 				{
-					cause wrap{"error reading map elem"};
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error reading map elem at index " << i;
 				}
 
 				auto it_new = pm->insert(std::move(p));
 				if (!it_new.second)
 				{
-					cause err{"error decoding map due to duplicate key"};
-					if constexpr (cause_writable<K>)
+					error err{"error decoding map due to duplicate key"};
+					if constexpr (error_writable<K>)
 					{
 						err << ": " << it_new.first->first;
 					}
@@ -48,7 +46,7 @@ namespace gulachek::gtree
 	{
 		const std::map<K,V,C,A> &m;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(nullptr, 0);
 			w.child_count(m.size());
@@ -57,8 +55,8 @@ namespace gulachek::gtree
 			{
 				if (auto err = w.write(elem))
 				{
-					cause wrap{"error writing map elem"};
-					if constexpr (cause_writable<K>)
+					error wrap{"error writing map elem"};
+					if constexpr (error_writable<K>)
 					{
 						wrap << " with key " << elem.first;
 					}

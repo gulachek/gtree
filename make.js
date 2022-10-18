@@ -22,6 +22,8 @@ function makeLib(cpp) {
 		iostreams: cpp.require('org.boost.iostreams', '1.74.0')
 	};
 
+	const errorLib = cpp.require('com.gulachek.error', '0.1.0');
+
 	const gtree = cpp.compile({
 		name: 'com.gulachek.gtree',
 		version,
@@ -30,7 +32,6 @@ function makeLib(cpp) {
 			'src/base128.cpp',
 			'src/twos_complement.cpp',
 			'src/fd.cpp',
-			'src/cause.cpp',
 			'src/translate.cpp',
 			'src/tree.cpp'
 		]
@@ -39,6 +40,7 @@ function makeLib(cpp) {
 	gtree.include('include');
 	gtree.link(boost.fiber);
 	gtree.link(boost.iostreams);
+	gtree.link(errorLib);
 
 	return gtree;
 }

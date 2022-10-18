@@ -9,7 +9,7 @@
 #include <sstream>
 #include <cstdint>
 
-using cause = gulachek::cause;
+using gulachek::error;
 namespace gt = gulachek::gtree;
 
 using vec = std::vector<std::uint8_t>;

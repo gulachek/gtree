@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cstdint>
 
-using cause = gulachek::cause;
+using gulachek::error;
 namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(TranslateSelf)
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(VectorToIntIsZero)
 
 struct read_too_many_children
 {
-	cause gtree_decode(gt::treeder &r)
+	error gtree_decode(gt::treeder &r)
 	{
 		gt::ignore ig;
 

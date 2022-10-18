@@ -13,7 +13,7 @@ namespace gulachek::gtree
 	{
 		std::shared_ptr<T> *pp;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			T val;
 			decoding<T> dec{&val};
@@ -30,7 +30,7 @@ namespace gulachek::gtree
 	{
 		const std::shared_ptr<T> &p;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			if (!p)
 				return {"cannot encode nullptr for std::shared_ptr"};

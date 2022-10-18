@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	template <typename T>
 	concept decode_invocable = requires (T &f, treeder &r)
 	{
-		{ f(r) } -> my_same_as<cause>;
+		{ f(r) } -> my_same_as<error>;
 	};
 
 	template <decode_invocable F>
@@ -22,7 +22,7 @@ namespace gulachek::gtree
 	{
 		F *f;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			return (*f)(r);
 		}
@@ -31,7 +31,7 @@ namespace gulachek::gtree
 	template <typename T>
 	concept encode_invocable = requires (T &f, tree_writer &w)
 	{
-		{ f(w) } -> my_same_as<cause>;
+		{ f(w) } -> my_same_as<error>;
 	};
 
 	template <encode_invocable F>
@@ -39,7 +39,7 @@ namespace gulachek::gtree
 	{
 		const F &f;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			return f(w);
 		}

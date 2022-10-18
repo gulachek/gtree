@@ -19,7 +19,7 @@
 namespace gulachek::gtree
 {
 	template <decodable Decodable>
-	cause read(std::istream &is, Decodable *target)
+	error read(std::istream &is, Decodable *target)
 	{
 		istream_treeder_stream stream{is};
 		treeder reader{stream};
@@ -27,7 +27,7 @@ namespace gulachek::gtree
 	}
 
 	template <decodable Decodable>
-	cause read_fd(int fd, Decodable *target)
+	error read_fd(int fd, Decodable *target)
 	{
 		fd_istream_adapter adapt{fd};
 		if (auto err = read(adapt.stream(), target))
@@ -35,23 +35,20 @@ namespace gulachek::gtree
 			if (err.is_eof())
 				return err;
 
-			cause wrap;
-			wrap << "error reading fd " << fd;
-			wrap.add_cause(std::move(err));
-			return wrap;
+			return err.wrap() << "error reading fd " << fd;
 		}
 
 		return {};
 	}
 
 	template <decodable Decodable>
-	cause read_file(const std::filesystem::path &p, Decodable *target)
+	error read_file(const std::filesystem::path &p, Decodable *target)
 	{
 		std::ifstream f{p};
 
 		if (!f)
 		{
-			cause err;
+			error err;
 			err << "error opening file " << p;
 			return err;
 		}
@@ -61,10 +58,7 @@ namespace gulachek::gtree
 			if (err.is_eof())
 				return err;
 
-			cause wrap;
-			wrap << "error reading file " << p;
-			wrap.add_cause(std::move(err));
-			return wrap;
+			return err.wrap() << "error reading file " << p;
 		}
 
 		return {};

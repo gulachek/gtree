@@ -10,7 +10,7 @@
 template <
 	gulachek::gtree::encodable E,
 	gulachek::gtree::decodable D>
-gulachek::cause cvt(const E &src, D *dest)
+gulachek::error cvt(const E &src, D *dest)
 {
 	std::stringstream ss;
 

@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	{
 		const std::string_view &s;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(s.data(), s.size());
 			w.child_count(0);

@@ -19,7 +19,7 @@ namespace gulachek::gtree
 	{
 		Sequence *p;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			using namespace boost::fusion;
 			constexpr auto n = result_of::size<Sequence>::value;
@@ -29,7 +29,7 @@ namespace gulachek::gtree
 
 			if (cc < n)
 			{
-				cause err;
+				error err;
 				err << "too few elements in tuple. expected " << n <<
 					" but encountered " << cc;
 				return err;
@@ -44,7 +44,7 @@ namespace gulachek::gtree
 			typename SeqIt
 		>
 			requires (index == size)
-		static cause __decode_seq(treeder &r, SeqIt &it)
+		static error __decode_seq(treeder &r, SeqIt &it)
 		{
 			return {};
 		}
@@ -55,17 +55,14 @@ namespace gulachek::gtree
 			typename SeqIt
 		>
 			requires (index < size)
-		static cause __decode_seq(treeder &r, SeqIt &it)
+		static error __decode_seq(treeder &r, SeqIt &it)
 		{
 			using namespace boost::fusion;
 			typename result_of::value_of<SeqIt>::type x;
 
 			if (auto err = r.read(&x))
 			{
-				cause wrapper;
-				wrapper << "error reading fusion elem " << index;
-				wrapper.add_cause(err);
-				return wrapper;
+				return err.wrap() << "error reading fusion elem " << index;
 			}
 
 			*it = std::move(x);
@@ -79,7 +76,7 @@ namespace gulachek::gtree
 	{
 		const Sequence &s;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			using namespace boost::fusion;
 
@@ -98,7 +95,7 @@ namespace gulachek::gtree
 			typename SeqIt
 		>
 			requires (index == size)
-		static cause __encode_seq(SeqIt &it, tree_writer &w)
+		static error __encode_seq(SeqIt &it, tree_writer &w)
 		{
 			return {};
 		}
@@ -109,7 +106,7 @@ namespace gulachek::gtree
 			typename SeqIt
 		>
 			requires (index < size)
-		static cause __encode_seq(SeqIt &it, tree_writer &w)
+		static error __encode_seq(SeqIt &it, tree_writer &w)
 		{
 			using namespace boost::fusion;
 			using result_t = typename result_of::value_of<SeqIt>::type; 
@@ -117,10 +114,7 @@ namespace gulachek::gtree
 
 			if (auto err = w.write(x))
 			{
-				cause wrapper;
-				wrapper << "error encoding fusion elem " << index;
-				wrapper.add_cause(err);
-				return wrapper;
+				return err.wrap() << "error encoding fusion elem " << index;
 			}
 
 			return __encode_seq<size, index+1>(

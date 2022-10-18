@@ -8,7 +8,7 @@ struct saboteur
 {
 	bool error = false;
 
-	gulachek::cause gtree_decode(gulachek::gtree::treeder &r)
+	gulachek::error gtree_decode(gulachek::gtree::treeder &r)
 	{
 		auto val = r.value();
 		if (val.empty())
@@ -17,7 +17,7 @@ struct saboteur
 			return {"saboteur has value"};
 	}
 
-	gulachek::cause gtree_encode(gulachek::gtree::tree_writer &w) const
+	gulachek::error gtree_encode(gulachek::gtree::tree_writer &w) const
 	{
 		w.value(nullptr, 0);
 		w.child_count(0);

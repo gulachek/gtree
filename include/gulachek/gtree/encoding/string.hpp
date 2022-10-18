@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	{
 		std::string *s;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto val = r.value();
 			auto start = (const char*) val.data();
@@ -28,7 +28,7 @@ namespace gulachek::gtree
 	{
 		const std::string &s;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(s.data(), s.size());
 			w.child_count(0);

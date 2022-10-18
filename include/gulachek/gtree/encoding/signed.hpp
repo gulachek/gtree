@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	{
 		T *pn;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto val = r.value();
 			auto nbytes = val.size();
@@ -27,7 +27,7 @@ namespace gulachek::gtree
 			}
 			else if (nbytes > width)
 			{
-				cause err;
+				error err;
 				err << "Signed integer overflow. " << nbytes << " byte(s) > "
 					<< width << " byte(s)";
 				return err;
@@ -63,7 +63,7 @@ namespace gulachek::gtree
 	{
 		const T &n;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			bool is_neg = (n < 0);
 			std::uint8_t buf[sizeof(T)];

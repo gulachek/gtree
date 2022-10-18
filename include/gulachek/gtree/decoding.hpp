@@ -5,7 +5,7 @@
 #include "gulachek/gtree/base128.hpp"
 #include "gulachek/gtree/ignore.hpp"
 
-#include <gulachek/cause.hpp>
+#include <gulachek/error.hpp>
 
 #include <span>
 #include <cstddef>
@@ -31,7 +31,7 @@ namespace gulachek::gtree
 		typename decoding<T>;
 		{ decoding<T>{p} };
 
-		{dec.decode(r)} -> my_same_as<cause>;
+		{dec.decode(r)} -> my_same_as<error>;
 	};
 
 	enum class read_error
@@ -45,7 +45,7 @@ namespace gulachek::gtree
 	struct GTREE_API treeder_stream
 	{
 		virtual ~treeder_stream(){}
-		virtual cause next() = 0;
+		virtual error next() = 0;
 
 		virtual std::size_t size() const = 0;
 		virtual const std::uint8_t* data() const = 0;
@@ -59,7 +59,7 @@ namespace gulachek::gtree
 				is_{is}
 			{}
 
-			GTREE_API cause next() override
+			GTREE_API error next() override
 			{
 				std::size_t nbytes;
 				if (auto err = read_base128(is_, &nbytes))
@@ -67,7 +67,7 @@ namespace gulachek::gtree
 					if (err.is_eof())
 						return err;
 
-					cause wrap{read_error::incomplete_value_size};
+					error wrap{read_error::incomplete_value_size};
 					wrap << "error reading value size";
 					wrap.add_cause(err);
 					return wrap;
@@ -79,7 +79,7 @@ namespace gulachek::gtree
 				auto read_count = (std::size_t)is_.gcount();
 				if (read_count != nbytes)
 				{
-					cause err{read_error::incomplete_value};
+					error err{read_error::incomplete_value};
 					err << "reading tree value expected " << nbytes <<
 						" bytes, actual: " << read_count;
 					return err;
@@ -87,7 +87,7 @@ namespace gulachek::gtree
 
 				if (auto err = read_base128(is_, &child_count_))
 				{
-					cause wrap{read_error::incomplete_child_count};
+					error wrap{read_error::incomplete_child_count};
 					wrap << "error reading child count";
 					wrap.add_cause(err);
 					return wrap;
@@ -131,7 +131,7 @@ namespace gulachek::gtree
 			}
 
 			template <decodable Decodable>
-			cause read(Decodable *target);
+			error read(Decodable *target);
 
 		private:
 			treeder_stream &stream_;
@@ -146,7 +146,7 @@ namespace gulachek::gtree
 	 treeder &reader
 	)
 	{
-		{ val.gtree_decode(reader) } -> my_same_as<cause>;
+		{ val.gtree_decode(reader) } -> my_same_as<error>;
 	};
 
 	template <class_decodable T>
@@ -154,7 +154,7 @@ namespace gulachek::gtree
 	{
 		T *out;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{ return out->gtree_decode(r); }
 	};
 
@@ -163,7 +163,7 @@ namespace gulachek::gtree
 	{
 		ignore *ig_;
 
-		GTREE_API cause decode(treeder &r)
+		GTREE_API error decode(treeder &r)
 		{
 			auto cc = r.child_count();
 			for (std::size_t i = 0; i < cc; ++i)
@@ -177,7 +177,7 @@ namespace gulachek::gtree
 	};
 
 	template <decodable Decodable>
-	cause treeder::read(Decodable *target)
+	error treeder::read(Decodable *target)
 	{
 		++read_count_;
 		if (read_count_ > nchildren_)
@@ -193,7 +193,7 @@ namespace gulachek::gtree
 
 		if (auto err = dec.decode(reader))
 		{
-			cause wrap{read_error::bad_children, "decoding tree"};
+			error wrap{read_error::bad_children, "decoding tree"};
 			wrap.add_cause(std::move(err));
 			return wrap;
 		}
@@ -206,7 +206,7 @@ namespace gulachek::gtree
 
 			if (auto err = ig_reader.read(&ig))
 			{
-				cause wrap{read_error::bad_children, "handling excess child"};
+				error wrap{read_error::bad_children, "handling excess child"};
 				wrap.add_cause(std::move(err));
 				return wrap;
 			}

@@ -57,16 +57,16 @@ namespace gulachek::gtree
 			const tree& child(std::size_t i) const;
 			tree& child(std::size_t i);
 
-			cause gtree_encode(tree_writer &writer) const;
-			cause gtree_decode(treeder &reader);
+			error gtree_encode(tree_writer &writer) const;
+			error gtree_decode(treeder &reader);
 
 			// optimized translation from tree
 			template <decodable D>
-			cause read(D *dest) const;
+			error read(D *dest) const;
 
 			// optimized translation to tree
 			template <encodable E>
-			cause write(const E &src);
+			error write(const E &src);
 
 		private:
 			std::vector<std::uint8_t> value_;
@@ -79,7 +79,7 @@ namespace gulachek::gtree
 			tree_treeder_stream(const tree *tr);
 			~tree_treeder_stream() = default;
 
-			cause next() override;
+			error next() override;
 			std::size_t size() const override;
 			const std::uint8_t* data() const override;
 			std::size_t child_count() const override;
@@ -99,7 +99,7 @@ namespace gulachek::gtree
 	};
 
 	template <decodable D>
-	cause tree::read(D *dest) const
+	error tree::read(D *dest) const
 	{
 		tree_treeder_stream stream{this};
 		treeder reader{stream};
@@ -130,7 +130,7 @@ namespace gulachek::gtree
 	};
 
 	template <encodable E>
-	cause tree::write(const E &src)
+	error tree::write(const E &src)
 	{
 		tree_tree_writer_stream stream{this};
 		tree_writer writer{stream};

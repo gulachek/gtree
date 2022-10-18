@@ -7,7 +7,7 @@
 #include <vector>
 #include <cstdint>
 
-using cause = gulachek::cause;
+using gulachek::error;
 namespace gt = gulachek::gtree;
 
 std::stringstream makeis(const std::vector<std::uint8_t> &buf)
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(AbcChildren)
 
 struct read_first_child
 {
-	cause gtree_decode(gt::treeder &r)
+	error gtree_decode(gt::treeder &r)
 	{
 		gt::ignore child;
 		return r.read(&child);

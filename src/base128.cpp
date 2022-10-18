@@ -17,7 +17,7 @@ namespace gulachek::gtree
 		}
 	}
 
-	cause read_base128(std::istream &is, std::size_t *n)
+	error read_base128(std::istream &is, std::size_t *n)
 	{
 		*n = 0;
 		std::size_t power = 1;
@@ -31,7 +31,7 @@ namespace gulachek::gtree
 		if (c == eof)
 		{
 			if (is.eof())
-				return cause::eof();
+				return error::eof();
 			else
 				return {read_base128_error::bad_stream, "bad stream"};
 		}
@@ -64,7 +64,7 @@ namespace gulachek::gtree
 		return {};
 	}
 
-	cause write_base128(std::ostream &os, std::size_t n)
+	error write_base128(std::ostream &os, std::size_t n)
 	{
 		while (n > 127)
 		{

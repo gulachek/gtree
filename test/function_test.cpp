@@ -14,7 +14,7 @@
 
 namespace tt = boost::test_tools;
 
-using cause = gulachek::cause;
+using gulachek::error;
 namespace gt = gulachek::gtree;
 
 using vec = std::vector<std::uint8_t>;
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(ReadSendErrorIsErr)
 	int n = 0;
 
 	auto f = [&](gt::treeder &r){
-		return cause{"ad hoc"};
+		return error{"ad hoc"};
 	};
 	auto err = gt::translate(n, &f);
 
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(WriteSendErrorIsErr)
 	int n;
 
 	auto f = [&](gt::tree_writer &w){
-		return cause{"ad hoc"};
+		return error{"ad hoc"};
 	};
 	auto err = gt::translate(f, &n);
 

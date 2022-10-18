@@ -4,7 +4,7 @@
 #include "gulachek/gtree/base128.hpp"
 #include "gulachek/gtree/decoding.hpp"
 
-#include <gulachek/cause.hpp>
+#include <gulachek/error.hpp>
 
 #include <cstddef>
 #include <istream>

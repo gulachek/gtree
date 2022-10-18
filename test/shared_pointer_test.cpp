@@ -13,7 +13,7 @@
 
 namespace tt = boost::test_tools;
 
-using cause = gulachek::cause;
+using gulachek::error;
 namespace gt = gulachek::gtree;
 
 BOOST_AUTO_TEST_CASE(DecodeValueAsPointer)

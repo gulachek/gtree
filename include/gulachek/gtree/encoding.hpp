@@ -4,7 +4,7 @@
 #include "gulachek/gtree/my_same_as.hpp"
 #include "gulachek/gtree/base128.hpp"
 
-#include <gulachek/cause.hpp>
+#include <gulachek/error.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -29,7 +29,7 @@ namespace gulachek::gtree
 		typename encoding<T>;
 		{ encoding<T>{val} };
 
-		{enc.encode(writer)} -> my_same_as<cause>;
+		{enc.encode(writer)} -> my_same_as<error>;
 	};
 
 	struct tree_writer_stream
@@ -105,7 +105,7 @@ namespace gulachek::gtree
 			}
 
 			template <encodable T>
-			cause write(const T &c)
+			error write(const T &c)
 			{
 				track_write();
 
@@ -114,10 +114,7 @@ namespace gulachek::gtree
 
 				if (auto err = enc.encode(writer))
 				{
-					cause wrapper;
-					wrapper << "error writing child " << (write_count_-1);
-					wrapper.add_cause(err);
-					return wrapper;
+					return err.wrap() << "error writing child " << (write_count_-1);
 				}
 
 				if (writer.cursor_ != cursor_position::value)
@@ -159,7 +156,7 @@ namespace gulachek::gtree
 				}
 			}
 
-			cause stream_ok()
+			error stream_ok()
 			{
 				if (stream_.ok()) return {};
 				return {"bad stream"};
@@ -173,7 +170,7 @@ namespace gulachek::gtree
 	 tree_writer &writer
 	 )
 	{
-		{ val.gtree_encode(writer) } -> my_same_as<cause>;
+		{ val.gtree_encode(writer) } -> my_same_as<error>;
 	};
 
 	template <class_encodable T>
@@ -181,7 +178,7 @@ namespace gulachek::gtree
 	{
 		const T &val_;
 
-		cause encode(tree_writer &writer)
+		error encode(tree_writer &writer)
 		{
 			return val_.gtree_encode(writer);
 		}

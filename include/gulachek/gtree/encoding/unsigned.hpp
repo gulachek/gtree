@@ -13,7 +13,7 @@ namespace gulachek::gtree
 {
 	template <typename T>
 		requires std::is_unsigned_v<T>
-	cause decode_unsigned(const void *buf, std::size_t nbytes, T *pn)
+	error decode_unsigned(const void *buf, std::size_t nbytes, T *pn)
 	{
 		auto start = (const std::uint8_t*)buf;
 		auto size = nbytes;
@@ -21,7 +21,7 @@ namespace gulachek::gtree
 		constexpr auto width = sizeof(T);
 		if (size > width)
 		{
-			cause err;
+			error err;
 			err << "Unsigned integer overflow. '" << size << "' bytes "
 				"cannot fit in '" << width << "' byte(s)";
 			return err;
@@ -40,7 +40,7 @@ namespace gulachek::gtree
 	}
 
 	template <typename T>
-	cause decode_unsigned(
+	error decode_unsigned(
 			const std::span<const std::uint8_t> &val, T *pn)
 	{
 		return decode_unsigned(val.data(), val.size(), pn);
@@ -52,7 +52,7 @@ namespace gulachek::gtree
 	{
 		T *pn;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto tval = r.value();
 			return decode_unsigned(tval.data(), tval.size(), pn);
@@ -81,7 +81,7 @@ namespace gulachek::gtree
 	{
 		const T &n;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			std::uint8_t bytes[sizeof(T)];
 			auto nbytes = encode_unsigned(bytes, n);

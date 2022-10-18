@@ -25,7 +25,7 @@ namespace gulachek::gtree
 	tree& tree::child(std::size_t i)
 	{ return children_[i]; }
 
-	cause tree::gtree_decode(treeder &reader)
+	error tree::gtree_decode(treeder &reader)
 	{
 		value(reader.value());
 
@@ -36,17 +36,14 @@ namespace gulachek::gtree
 		{
 			if (auto err = reader.read(&children_[i]))
 			{
-				cause wrap;
-				wrap << "error decoding tree child " << i;
-				wrap.add_cause(err);
-				return wrap;
+				return err.wrap() << "error decoding tree child " << i;
 			}
 		}
 
 		return {};
 	}
 
-	cause tree::gtree_encode(tree_writer &writer) const
+	error tree::gtree_encode(tree_writer &writer) const
 	{
 		writer.value(value_.data(), value_.size());
 
@@ -67,7 +64,7 @@ namespace gulachek::gtree
 		stack_.push({&base_, 0});
 	}
 
-	cause tree_treeder_stream::next()
+	error tree_treeder_stream::next()
 	{
 		while (!stack_.empty())
 		{
@@ -91,7 +88,7 @@ namespace gulachek::gtree
 			}
 		}
 
-		return cause::eof();
+		return error::eof();
 	}
 
 	const tree* tree_treeder_stream::tr() const

@@ -18,14 +18,12 @@ namespace gulachek::gtree
 
 		var_t *pv;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			std::size_t actual_index;
 			if (auto err = decode_unsigned(r.value(), &actual_index))
 			{
-				cause wrap{"failed to decode variant alt index"};
-				wrap.add_cause(err);
-				return wrap;
+				return err.wrap() << "failed to decode variant index";
 			}
 
 			if (!r.child_count())
@@ -38,9 +36,9 @@ namespace gulachek::gtree
 
 		template <std::size_t index>
 			requires (index == n)
-		cause decode_alt(std::size_t actual_index, treeder &)
+		error decode_alt(std::size_t actual_index, treeder &)
 		{
-			cause err;
+			error err;
 			err << "variant alt index " << actual_index << " is out of "
 				"bounds for a variant with " << n << " alts";
 			return err;
@@ -48,7 +46,7 @@ namespace gulachek::gtree
 
 		template <std::size_t index>
 			requires (index < n)
-		cause decode_alt(std::size_t actual_index, treeder &r)
+		error decode_alt(std::size_t actual_index, treeder &r)
 		{
 			if (actual_index == index)
 			{
@@ -57,10 +55,7 @@ namespace gulachek::gtree
 				
 				if (auto err = r.read(&val))
 				{
-					cause wrap;
-					wrap << "error reading variant alt " << index;
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error reading variant alt " << index;
 				}
 
 				pv->template emplace<index>(std::move(val));
@@ -79,7 +74,7 @@ namespace gulachek::gtree
 
 		const var_t &v;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			std::uint8_t index[sizeof(std::size_t)];
 			auto n = encode_unsigned(index, v.index());
@@ -91,23 +86,20 @@ namespace gulachek::gtree
 
 		template <std::size_t index>
 			requires (index == n)
-		cause encode_alt(tree_writer &)
+		error encode_alt(tree_writer &)
 		{
 			throw std::logic_error{"should not happen"};
 		}
 
 		template <std::size_t index>
 			requires (index < n)
-		cause encode_alt(tree_writer &w)
+		error encode_alt(tree_writer &w)
 		{
 			if (v.index() == index)
 			{
 				if (auto err = w.write(std::get<index>(v)))
 				{
-					cause wrap;
-					wrap << "error encoding variant alt " << index;
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error encoding variant alt " << index;
 				}
 				return {};
 			}

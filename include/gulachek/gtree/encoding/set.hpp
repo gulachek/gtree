@@ -13,7 +13,7 @@ namespace gulachek::gtree
 	{
 		std::set<K,C,A> *ps;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto n = r.child_count();
 			for (std::size_t i = 0; i < n; ++i)
@@ -21,9 +21,7 @@ namespace gulachek::gtree
 				K elem;
 				if (auto err = r.read(&elem))
 				{
-					cause wrap{"error reading set elem"};
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error reading set elem " << i;
 				}
 				ps->emplace(std::move(elem));
 			}
@@ -36,18 +34,19 @@ namespace gulachek::gtree
 	{
 		const std::set<K,C,A> &s;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(nullptr, 0);
 			w.child_count(s.size());
 
+			std::size_t i = 0;
 			for (const auto &elem : s)
 			{
+				++i;
+
 				if (auto err = w.write(elem))
 				{
-					cause wrap{"error writing set elem"};
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error writing set elem " << i;
 				}
 			}
 

@@ -22,16 +22,16 @@ namespace gulachek::gtree
 			GTREE_API translate_stream();
 			GTREE_API ~translate_stream();
 
-			GTREE_API cause translate(
-					const std::function<cause()> &read,
-					const std::function<cause()> &write
+			GTREE_API error translate(
+					const std::function<error()> &read,
+					const std::function<error()> &write
 					);
 
 			GTREE_API void value(const void *data, std::size_t n) override;
 			GTREE_API void child_count(std::size_t n) override;
 			GTREE_API bool ok() override;
 
-			GTREE_API cause next() override;
+			GTREE_API error next() override;
 			GTREE_API std::size_t size() const override;
 			GTREE_API const std::uint8_t* data() const override;
 			GTREE_API std::size_t child_count() const override;
@@ -52,7 +52,7 @@ namespace gulachek::gtree
 	};
 
 	template <encodable E, decodable D>
-	cause translate(const E &src, D *dest)
+	error translate(const E &src, D *dest)
 	{
 		translate_stream translator;
 

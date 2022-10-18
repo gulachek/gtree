@@ -13,7 +13,7 @@ namespace gulachek::gtree
 	{
 		std::vector<T, Allocator> *v;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			auto n = r.child_count();
 			v->resize(n);
@@ -22,10 +22,7 @@ namespace gulachek::gtree
 			{
 				if (auto err = r.read(&v->at(i)))
 				{
-					cause wrapper;
-					wrapper << "error decoding vector element " << i;
-					wrapper.add_cause(err);
-					return wrapper;
+					return err.wrap() << "error decoding vector element " << i;
 				}
 			}
 
@@ -38,7 +35,7 @@ namespace gulachek::gtree
 	{
 		const std::vector<T, Allocator> &v;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(nullptr, 0);
 			w.child_count(v.size());
@@ -47,10 +44,7 @@ namespace gulachek::gtree
 			{
 				if (auto err = w.write(v[i]))
 				{
-					cause wrapper;
-					wrapper << "error encoding vector element " << i;
-					wrapper.add_cause(err);
-					return wrapper;
+					return err.wrap() << "error encoding vector element " << i;
 				}
 			}
 

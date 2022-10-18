@@ -1,7 +1,7 @@
 #ifndef GULACHEK_GTREE_BASE128_HPP
 #define GULACHEK_GTREE_BASE128_HPP
 
-#include <gulachek/cause.hpp>
+#include <gulachek/error.hpp>
 
 #include <istream>
 #include <ostream>
@@ -16,14 +16,14 @@ namespace gulachek::gtree
 		overflow
 	};
 
-	GTREE_API cause read_base128(std::istream &is, std::size_t *n);
+	GTREE_API error read_base128(std::istream &is, std::size_t *n);
 
 	enum class write_base128_error
 	{
 		bad_stream = 1
 	};
 
-	GTREE_API cause write_base128(std::ostream &os, std::size_t n);
+	GTREE_API error write_base128(std::ostream &os, std::size_t n);
 }
 
 #endif

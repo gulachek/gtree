@@ -12,16 +12,14 @@ namespace gulachek::gtree
 	{
 		std::optional<T> *p;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			if (r.child_count())
 			{
 				T val;
 				if (auto err = r.read(&val))
 				{
-					cause wrap{"error reading optional value"};
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error reading optional value";
 				}
 				p->emplace(std::move(val));
 				return {};
@@ -39,7 +37,7 @@ namespace gulachek::gtree
 	{
 		const std::optional<T> &o;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			w.value(nullptr, 0);
 
@@ -48,9 +46,7 @@ namespace gulachek::gtree
 				w.child_count(1);
 				if (auto err = w.write(*o))
 				{
-					cause wrap{"error writing optional value"};
-					wrap.add_cause(err);
-					return wrap;
+					return err.wrap() << "error writing optional value";
 				}
 			}
 			else

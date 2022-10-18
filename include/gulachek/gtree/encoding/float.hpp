@@ -14,7 +14,7 @@ namespace gulachek::gtree
 	{
 		float *pf;
 
-		cause decode(treeder &r)
+		error decode(treeder &r)
 		{
 			float f = 0.0f;
 
@@ -22,7 +22,7 @@ namespace gulachek::gtree
 			auto value = r.value();
 			if (value.size() != 4)
 			{
-				cause err;
+				error err;
 				err << "Expected float to have 4 bytes. Tree had " << value.size();
 				return err;
 			}
@@ -85,7 +85,7 @@ namespace gulachek::gtree
 	{
 		const float &my_f;
 
-		cause encode(tree_writer &w)
+		error encode(tree_writer &w)
 		{
 			// Naive implementation... optimize by compiler later
 			float f = my_f;
